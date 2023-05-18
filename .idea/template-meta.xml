@@ -1,6 +1,10 @@
 <template unencoded="false">
   <roots>
     <root index="0" path="" />
-    <root index="1" path="src/main" />
+    <root index="1" path="build/extracted-include-protos/test" />
+    <root index="2" path="build/extracted-protos/test" />
+    <root index="3" path="build/extracted-include-protos/main" />
+    <root index="4" path="build/extracted-protos/main" />
+    <root index="5" path="src/main" />
   </roots>
 </template>
