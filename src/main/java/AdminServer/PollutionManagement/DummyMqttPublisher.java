@@ -5,12 +5,17 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import java.util.logging.Level;
+import java.util.Date;
+import java.util.Locale;
 import java.util.logging.Logger;
 
 public class DummyMqttPublisher {
+    static {
+        Locale.setDefault(new Locale("en", "EN"));
+        System.setProperty("java.util.logging.SimpleFormatter.format",
+                "[%1$tF %1$tT] [%4$-7s] %3$s : %5$s %n");
+    }
     private static final Logger logger = Logger.getLogger(DummyMqttPublisher.class.getSimpleName());
-
     public static void main(String[] args) {
         String brokerAddress = "localhost";
         String brokerPort = "1883";
@@ -24,20 +29,29 @@ public class DummyMqttPublisher {
             connOpts.setCleanSession(true);
             mqttClient.connect(connOpts);
 
-            logger.log(Level.INFO, "Connected to {0}", brokerUrl);
-            for(int i = 0; i < 10; i++) {
-                String payload = String.valueOf(0 + (Math.random() * 10));
-                MqttMessage message = new MqttMessage(payload.getBytes());
-                message.setQos(qos);
-                mqttClient.publish(topic, message);
+            logger.info("Connected to " + brokerUrl);
+            logger.info("Publishing to " + topic);
+            for (int j=0; j<5; j++) {
+                String robotID = "RID" + j;
+                for(int i = 0; i < 30; i++) {
+                    double value = Math.random() * 100;
+                    long timestamp = new Date().getTime();
+                    String payload = robotID + ":" + value + ":" + timestamp;
+                    MqttMessage message = new MqttMessage(payload.getBytes());
+                    message.setQos(qos);
+                    mqttClient.publish(topic, message);
+                    //Thread.sleep(500);
+                }
             }
-            logger.log(Level.INFO, "Published to {0}", topic);
+            logger.info("Published to " + topic);
 
             if (mqttClient.isConnected())
                 mqttClient.disconnect();
         }
         catch (MqttException e) {
+            logger.severe("Exception: " + e.getMessage());
             e.printStackTrace();
+            logger.info("");
         }
     }
 }

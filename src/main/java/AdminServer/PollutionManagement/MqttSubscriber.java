@@ -1,8 +1,10 @@
 package AdminServer.PollutionManagement;
 
+import AdminServer.Beans.PollutionMeasurements;
+import AdminServer.Beans.RobotMeasure;
 import org.eclipse.paho.client.mqttv3.*;
 
-import java.util.logging.Level;
+import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
 public class MqttSubscriber {
@@ -11,12 +13,15 @@ public class MqttSubscriber {
     String brokerPort;
     String topic;
     String clientId;
+    PollutionMeasurements pollutionMeasurements;
     MqttClient mqttClient;
 
-    public MqttSubscriber(String brokerAddress, String brokerPort, String topic) {
+    public MqttSubscriber(String brokerAddress, String brokerPort, String topic,
+                          PollutionMeasurements pollutionMeasurements) {
         this.brokerAddress = brokerAddress;
         this.brokerPort = brokerPort;
         this.topic = topic;
+        this.pollutionMeasurements = pollutionMeasurements;
         clientId = MqttClient.generateClientId();
     }
 
@@ -27,12 +32,13 @@ public class MqttSubscriber {
             mqttClient.setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable cause) {
-                    logger.log(Level.WARNING, "Connection lost to {0}", brokerUrl);
+                    logger.warning("Connection lost to " + brokerUrl);
                 }
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
-                    logger.log(Level.INFO, "Message received from {0}", topic);
+                    logger.info( "Message received from "+ topic +", message: " + message.toString());
+                    pollutionMeasurements.addMeasurement(decodeMessage(message));
                 }
 
                 @Override
@@ -42,11 +48,11 @@ public class MqttSubscriber {
             });
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
-            logger.log(Level.INFO, "Connecting to {0}", brokerUrl);
+            logger.info("Connecting to " + brokerUrl);
             mqttClient.connect(connOpts);
-            logger.log(Level.INFO, "Connected to {0}", brokerUrl);
+            logger.info("Connected to " + brokerUrl);
             mqttClient.subscribe(topic, 2);
-            logger.log(Level.INFO, "Connected to topic {0}", topic);
+            logger.info("Connected to topic " + topic);
         }
         catch (MqttException me) {
             me.printStackTrace();
@@ -58,7 +64,16 @@ public class MqttSubscriber {
             mqttClient.disconnect();
         }
         catch (MqttException me) {
+            logger.severe("Exception while disconnecting " + me.getMessage());
             me.printStackTrace();
+            logger.info("");
         }
+    }
+
+    public static RobotMeasure decodeMessage(MqttMessage message) {
+        StringTokenizer tokenizer = new StringTokenizer(message.toString(), ":");
+        return new RobotMeasure(tokenizer.nextToken(),
+                Double.parseDouble(tokenizer.nextToken()),
+                Long.parseLong(tokenizer.nextToken()));
     }
 }
