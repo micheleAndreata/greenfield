@@ -1,6 +1,6 @@
 package AdminServer.services;
 
-import AdminServer.Beans.PollutionMeasurements;
+import Utils.Beans.PollutionMeasurements;
 import AdminServer.PollutionManagement.DummyMqttPublisher;
 
 import javax.ws.rs.GET;

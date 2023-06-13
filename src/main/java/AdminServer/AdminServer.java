@@ -1,6 +1,6 @@
 package AdminServer;
 
-import AdminServer.Beans.PollutionMeasurements;
+import Utils.Beans.PollutionMeasurements;
 import AdminServer.PollutionManagement.MqttSubscriber;
 import com.sun.jersey.api.container.httpserver.HttpServerFactory;
 import com.sun.net.httpserver.HttpServer;
@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Locale;
 import java.util.logging.Logger;
+
+import static Utils.Config.BROKER_ADDRESS;
+import static Utils.Config.QOS;
 
 public class AdminServer {
     private static final Logger logger = Logger.getLogger(AdminServer.class.getSimpleName());
@@ -23,8 +26,7 @@ public class AdminServer {
     }
 
     public static void main(String[] args) throws IOException {
-        PollutionMeasurements measurements = PollutionMeasurements.getInstance();
-        MqttSubscriber sub = new MqttSubscriber("localhost", "1883", "pollution", measurements);
+        MqttSubscriber sub = new MqttSubscriber(BROKER_ADDRESS, QOS);
         sub.initialize();
 
         HttpServer server = HttpServerFactory.create("http://"+HOST+":"+PORT+"/");

@@ -1,5 +1,7 @@
 package AdminServer.PollutionManagement;
 
+import Utils.Beans.RobotMeasure;
+import com.google.gson.Gson;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -36,7 +38,7 @@ public class DummyMqttPublisher {
                 for(int i = 0; i < 30; i++) {
                     double value = Math.random() * 100;
                     long timestamp = new Date().getTime();
-                    String payload = robotID + ":" + value + ":" + timestamp;
+                    String payload = new Gson().toJson(new RobotMeasure(robotID, value, timestamp));
                     MqttMessage message = new MqttMessage(payload.getBytes());
                     message.setQos(qos);
                     mqttClient.publish(topic, message);

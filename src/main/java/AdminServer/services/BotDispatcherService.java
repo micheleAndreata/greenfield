@@ -1,8 +1,8 @@
 package AdminServer.services;
 
-import AdminServer.Beans.Position;
-import AdminServer.Beans.RobotData;
-import AdminServer.Beans.RobotList;
+import Utils.Beans.Position;
+import Utils.Beans.RobotData;
+import Utils.Beans.RobotList;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -24,14 +24,23 @@ public class BotDispatcherService {
     @Consumes({"application/json", "application/xml"})
     @Produces({"application/json", "application/xml"})
     public Response addRobot(RobotData newRobot) {
-        int district = 0;
-        Position newPos = new Position(0, 0);
+        int district = 1; // TODO: handle uniform distribution of robots
+        Position newPos = new Position(0, 0); // TODO: set position in some way
         newRobot.setDistrict(district);
         newRobot.setGridPos(newPos);
 
-        if (newRobot.getRobotID() == null || !RobotList.getInstance().addRobot(newRobot)) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (newRobot.getRobotID() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Robot ID cannot be null")
+                    .build();
         }
+
+        if (!RobotList.getInstance().addRobot(newRobot)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Robot with ID " + newRobot.getRobotID() + " already exists")
+                    .build();
+        }
+
         logger.info("Adding robot: " + newRobot);
         return Response.ok(RobotList.getInstance()).build();
     }
@@ -40,6 +49,7 @@ public class BotDispatcherService {
     @DELETE
     public Response removeRobot(@PathParam("robotID") String robotID) {
         RobotList.getInstance().removeRobot(robotID);
+        logger.info("removed robot with ID " + robotID);
         return Response.ok().build();
     }
 }

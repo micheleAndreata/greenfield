@@ -1,4 +1,4 @@
-package AdminServer.Beans;
+package Utils.Beans;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -40,6 +40,6 @@ public class RobotList {
     }
 
     public synchronized ArrayList<RobotData> getList() {
-        return robots;
+        return new ArrayList<>(robots);
     }
 }

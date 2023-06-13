@@ -1,4 +1,4 @@
-package AdminServer.Beans;
+package Utils.Beans;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -14,12 +14,9 @@ import java.util.OptionalDouble;
 public class PollutionMeasurements {
     @XmlElement(name="measurements")
     private final HashMap<String, ArrayList<RobotMeasure>> measurements;
-    private static PollutionMeasurements instance;
+    private static final PollutionMeasurements instance = new PollutionMeasurements();;
 
-    public synchronized static PollutionMeasurements getInstance() {
-        if (instance == null) {
-            instance = new PollutionMeasurements();
-        }
+    public static PollutionMeasurements getInstance() {
         return instance;
     }
 
@@ -32,6 +29,12 @@ public class PollutionMeasurements {
             measurements.put(measure.getRobotID(), new ArrayList<>());
         }
         measurements.get(measure.getRobotID()).add(measure);
+    }
+
+    public void addMeasurements(RobotMeasure[] measures) {
+        for (RobotMeasure measure : measures) {
+            addMeasurement(measure);
+        }
     }
 
     public synchronized Double getRobotAverage(String robotID, int n) {

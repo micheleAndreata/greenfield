@@ -1,32 +1,36 @@
 package AdminServer.PollutionManagement;
 
-import AdminServer.Beans.PollutionMeasurements;
-import AdminServer.Beans.RobotMeasure;
+import Utils.Beans.PollutionMeasurements;
+import Utils.Beans.RobotMeasure;
+import com.google.gson.Gson;
 import org.eclipse.paho.client.mqttv3.*;
 
+import java.lang.reflect.Type;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
 public class MqttSubscriber {
     private static final Logger logger = Logger.getLogger(MqttSubscriber.class.getSimpleName());
-    String brokerAddress;
-    String brokerPort;
-    String topic;
+    String brokerUrl;
+    int qos;
+    String[] topics;
     String clientId;
     PollutionMeasurements pollutionMeasurements;
     MqttClient mqttClient;
 
-    public MqttSubscriber(String brokerAddress, String brokerPort, String topic,
-                          PollutionMeasurements pollutionMeasurements) {
-        this.brokerAddress = brokerAddress;
-        this.brokerPort = brokerPort;
-        this.topic = topic;
-        this.pollutionMeasurements = pollutionMeasurements;
+    public MqttSubscriber(String brokerUrl, int qos) {
+        this.brokerUrl = brokerUrl;
+        this.qos = qos;
+        this.topics = new String[4];
+        for(int i = 0; i < 4; i++) {
+            this.topics[i] = "greenfield/pollution/district" + (i+1);
+        }
+        this.pollutionMeasurements = PollutionMeasurements.getInstance();
         clientId = MqttClient.generateClientId();
     }
 
     public void initialize() {
-        String brokerUrl = "tcp://" + brokerAddress + ":" + brokerPort;
         try {
             mqttClient = new MqttClient(brokerUrl, clientId);
             mqttClient.setCallback(new MqttCallback() {
@@ -38,7 +42,7 @@ public class MqttSubscriber {
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
                     logger.info( "Message received from "+ topic +", message: " + message.toString());
-                    pollutionMeasurements.addMeasurement(decodeMessage(message));
+                    pollutionMeasurements.addMeasurements(decodeMessage(message));
                 }
 
                 @Override
@@ -51,8 +55,10 @@ public class MqttSubscriber {
             logger.info("Connecting to " + brokerUrl);
             mqttClient.connect(connOpts);
             logger.info("Connected to " + brokerUrl);
-            mqttClient.subscribe(topic, 2);
-            logger.info("Connected to topic " + topic);
+            for (String topic : topics) {
+                mqttClient.subscribe(topic, qos);
+                logger.info("Connected to topic " + topic);
+            }
         }
         catch (MqttException me) {
             me.printStackTrace();
@@ -70,10 +76,7 @@ public class MqttSubscriber {
         }
     }
 
-    public static RobotMeasure decodeMessage(MqttMessage message) {
-        StringTokenizer tokenizer = new StringTokenizer(message.toString(), ":");
-        return new RobotMeasure(tokenizer.nextToken(),
-                Double.parseDouble(tokenizer.nextToken()),
-                Long.parseLong(tokenizer.nextToken()));
+    public static RobotMeasure[] decodeMessage(MqttMessage message) {
+        return (new Gson()).fromJson(message.toString(), RobotMeasure[].class);
     }
 }

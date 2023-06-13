@@ -1,4 +1,4 @@
-package AdminServer.Beans;
+package Utils.Beans;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -11,18 +11,24 @@ public class RobotData {
     private String robotID;
     private int port;
 
-    private String IPAddress;
+    private String ipAddress;
 
     private int district;
     private Position gridPos;
 
     public RobotData(){}
-    public RobotData(String robotID, int port, String IPAddress, int district, Position gridPos) {
+    public RobotData(String robotID, int port, String ipAddress, int district, Position gridPos) {
         this.robotID = robotID;
         this.port = port;
-        this.IPAddress = IPAddress;
+        this.ipAddress = ipAddress;
         this.district = district;
         this.gridPos = gridPos;
+    }
+
+    public RobotData(String robotID, int port, String ipAddress) {
+        this.robotID = robotID;
+        this.port = port;
+        this.ipAddress = ipAddress;
     }
 
     public void setRobotID(String robotID) {
@@ -33,7 +39,7 @@ public class RobotData {
         this.port = port;
     }
 
-    public String setIPAddress() { return IPAddress; }
+    public String setIPAddress() { return ipAddress; }
 
     public void setDistrict(int district) {
         this.district = district;
@@ -75,7 +81,7 @@ public class RobotData {
     }
 
     public String getIPAddress() {
-        return IPAddress;
+        return ipAddress;
     }
 
     public int getDistrict() {
