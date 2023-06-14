@@ -1,4 +1,4 @@
-package CleaningRobot;
+package CleaningRobot.RestAPI;
 
 import Utils.Beans.RobotData;
 import com.google.gson.Gson;
@@ -8,7 +8,6 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
 public class RestAPI {
-
     private final String serverAddress;
     private final Client client;
 

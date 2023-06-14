@@ -1,13 +1,11 @@
-package AdminServer.PollutionManagement;
+package AdminServer.Mqtt;
 
 import Utils.Beans.PollutionMeasurements;
 import Utils.Beans.RobotMeasure;
 import com.google.gson.Gson;
 import org.eclipse.paho.client.mqttv3.*;
 
-import java.lang.reflect.Type;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class MqttSubscriber {
@@ -41,8 +39,9 @@ public class MqttSubscriber {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
-                    logger.info( "Message received from "+ topic +", message: " + message.toString());
-                    pollutionMeasurements.addMeasurements(decodeMessage(message));
+                    RobotMeasure[] robotMeasures = decodeMessage(message);
+                    logger.info( "Message received from "+ topic +".\nmessage: " + Arrays.toString(robotMeasures));
+                    pollutionMeasurements.addMeasurements(robotMeasures);
                 }
 
                 @Override

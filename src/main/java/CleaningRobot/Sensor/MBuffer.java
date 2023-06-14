@@ -28,27 +28,30 @@ public class MBuffer implements Buffer {
     }
 
     @Override
-    public synchronized void addMeasurement(Measurement m) {
-        measurements.add(m);
-        hasEnoughData = measurements.size() >= windowSize;
-        if (hasEnoughData)
-            notify();
+    public void addMeasurement(Measurement m) {
+        synchronized (this) {
+            measurements.add(m);
+            hasEnoughData = measurements.size() >= windowSize;
+            if (hasEnoughData)
+                notify();
+        }
     }
 
     @Override
-    public synchronized List<Measurement> readAllAndClean() {
-        while (!hasEnoughData) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                logger.severe("Interrupted while waiting for data");
-                e.printStackTrace();
+    public List<Measurement> readAllAndClean() {
+        synchronized (this) {
+            while (!hasEnoughData) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    logger.severe("Interrupted while waiting for data");
+                    e.printStackTrace();
+                }
             }
+            List<Measurement> window = new ArrayList<>(measurements.subList(0, windowSize));
+            measurements.removeAll(measurements.subList(0, overlap));
+            hasEnoughData = false;
+            return window;
         }
-
-        List<Measurement> window = measurements.subList(0, windowSize);
-        measurements.removeAll(measurements.subList(0, overlap));
-        hasEnoughData = false;
-        return window;
     }
 }

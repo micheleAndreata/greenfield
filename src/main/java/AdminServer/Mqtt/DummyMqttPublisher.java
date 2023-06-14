@@ -1,4 +1,4 @@
-package AdminServer.PollutionManagement;
+package AdminServer.Mqtt;
 
 import Utils.Beans.RobotMeasure;
 import com.google.gson.Gson;

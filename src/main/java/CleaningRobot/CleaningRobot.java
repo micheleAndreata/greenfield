@@ -1,9 +1,10 @@
 package CleaningRobot;
 
 import CleaningRobot.Mqtt.MqttPublisher;
+import CleaningRobot.RestAPI.RestAPI;
 import Utils.Beans.RobotData;
 import Utils.Beans.RobotList;
-import CleaningRobot.Mqtt.SensorListener;
+import CleaningRobot.Sensor.SensorListener;
 import CleaningRobot.Sensor.MBuffer;
 import CleaningRobot.Sensor.Simulator.PM10Simulator;
 import com.sun.jersey.api.client.ClientResponse;
@@ -32,37 +33,52 @@ public class CleaningRobot {
                 "[%1$tF %1$tT] [%4$-7s] %3$s : %5$s %n");
     }
     public static void main(String[] args) throws IOException {
-        CleaningRobot cleaningRobot = new CleaningRobot("RID2", 1337, "localhost");
+        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+
+        System.out.println("Insert robot ID: ");
+        String robotID = inFromUser.readLine();
+
+        //System.out.println("Insert port for grpc: ");
+        //int ownGrpcPort = Integer.parseInt(inFromUser.readLine());
+        int ownGrpcPort = 1337;
+
+        //System.out.println("Insert server address: ");
+        //String serverAddress = inFromUser.readLine();
+        String serverAddress = "http://localhost:1337";
+        String ownIpAddress = "localhost";
+
+        CleaningRobot cleaningRobot = new CleaningRobot(robotID, ownGrpcPort, ownIpAddress, serverAddress);
 
         // TODO: handle return boolean values
-        cleaningRobot.register();
+        if (!cleaningRobot.register())
+            return;
         cleaningRobot.startSensor();
         cleaningRobot.presentToOthers();
         cleaningRobot.startPublishingData();
 
-        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("\n*** Press enter to stop Robot ***\n");
         inFromUser.readLine();
 
         cleaningRobot.stop();
     }
 
-    public CleaningRobot(String robotID, int port, String ipAddress) {
-        robotData = new RobotData(robotID, port, ipAddress);
-        restAPI = new RestAPI(ipAddress);
+    public CleaningRobot(String robotID, int ownGrpcPort, String ownIpAddress, String serverAddress) {
+        robotData = new RobotData(robotID, ownGrpcPort, ownIpAddress);
+        restAPI = new RestAPI(serverAddress);
         sensor = new PM10Simulator(MBuffer.getInstance());
         sensorListener = new SensorListener();
-    }
-
-    public void startSensor() {
-        sensor.start();
-        sensorListener.start();
     }
 
     public void stop() {
         sensor.stopMeGently();
         sensorListener.stopMeGently();
         mqttPublisher.stopMeGently();
+    }
+
+    public void startSensor() {
+        sensor.start();
+        sensorListener.start();
+        logger.info("Sensor started");
     }
 
     public boolean register() {
@@ -77,12 +93,14 @@ public class CleaningRobot {
         }
         robots = response.getEntity(RobotList.class).getList();
         robotData = robots.get(robots.indexOf(robotData));
+        logger.info("Robot " + robotData.getRobotID() + " registered");
         return true;
     }
 
     public void startPublishingData() {
         mqttPublisher = new MqttPublisher(robotData.getDistrict(), robotData.getRobotID(), BROKER_ADDRESS, QOS);
         mqttPublisher.start();
+        logger.info("Started publishing data");
     }
 
     public boolean presentToOthers() {

@@ -42,4 +42,13 @@ public class RobotMeasure {
     public int hashCode() {
         return Objects.hash(robotID, value, timestamp);
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "robotID='" + robotID + '\'' +
+                ", value=" + value +
+                ", timestamp=" + timestamp +
+                '}';
+    }
 }

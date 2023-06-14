@@ -9,7 +9,7 @@ import java.util.Objects;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RobotData {
     private String robotID;
-    private int port;
+    private int grpcPort;
 
     private String ipAddress;
 
@@ -17,17 +17,17 @@ public class RobotData {
     private Position gridPos;
 
     public RobotData(){}
-    public RobotData(String robotID, int port, String ipAddress, int district, Position gridPos) {
+    public RobotData(String robotID, int grpcPort, String ipAddress, int district, Position gridPos) {
         this.robotID = robotID;
-        this.port = port;
+        this.grpcPort = grpcPort;
         this.ipAddress = ipAddress;
         this.district = district;
         this.gridPos = gridPos;
     }
 
-    public RobotData(String robotID, int port, String ipAddress) {
+    public RobotData(String robotID, int grpcPort, String ipAddress) {
         this.robotID = robotID;
-        this.port = port;
+        this.grpcPort = grpcPort;
         this.ipAddress = ipAddress;
     }
 
@@ -35,8 +35,8 @@ public class RobotData {
         this.robotID = robotID;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setGrpcPort(int grpcPort) {
+        this.grpcPort = grpcPort;
     }
 
     public String setIPAddress() { return ipAddress; }
@@ -66,7 +66,8 @@ public class RobotData {
     public String toString() {
         return "RobotData{" +
                 "robotID='" + robotID + '\'' +
-                ", port=" + port +
+                ", grpcPort=" + grpcPort +
+                ", ipAddress='" + ipAddress +
                 ", district=" + district +
                 ", gridPos=" + gridPos +
                 '}';
@@ -76,8 +77,8 @@ public class RobotData {
         return robotID;
     }
 
-    public int getPort() {
-        return port;
+    public int getGrpcPort() {
+        return grpcPort;
     }
 
     public String getIPAddress() {

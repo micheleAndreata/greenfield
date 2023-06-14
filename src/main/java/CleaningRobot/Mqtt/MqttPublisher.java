@@ -53,7 +53,6 @@ public class MqttPublisher extends Thread{
             // TODO: handle this exception
             logger.severe("Exception: " + e.getMessage());
             e.printStackTrace();
-            logger.info("");
         }
     }
 
@@ -69,7 +68,6 @@ public class MqttPublisher extends Thread{
             // TODO: handle this exception
             logger.severe("Exception: " + e.getMessage());
             e.printStackTrace();
-            logger.info("");
         }
     }
 
@@ -85,7 +83,6 @@ public class MqttPublisher extends Thread{
             // TODO: handle this exception
             logger.severe("Exception: " + e.getMessage());
             e.printStackTrace();
-            logger.info("");
         }
     }
 

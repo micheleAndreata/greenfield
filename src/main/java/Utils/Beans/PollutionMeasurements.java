@@ -31,7 +31,7 @@ public class PollutionMeasurements {
         measurements.get(measure.getRobotID()).add(measure);
     }
 
-    public void addMeasurements(RobotMeasure[] measures) {
+    public synchronized void addMeasurements(RobotMeasure[] measures) {
         for (RobotMeasure measure : measures) {
             addMeasurement(measure);
         }
@@ -66,5 +66,19 @@ public class PollutionMeasurements {
             return null;
         }
         return sum / i;
+    }
+
+    public synchronized int getNumberOfMeasurements() {
+        int totalSize = 0;
+        for (String robotID : measurements.keySet()) {
+            totalSize += measurements.get(robotID).size();
+        }
+        return totalSize;
+    }
+    public synchronized Integer getNumberOfMeasurements(String robotID) {
+        if (!measurements.containsKey(robotID)) {
+            return null;
+        }
+        return measurements.get(robotID).size();
     }
 }

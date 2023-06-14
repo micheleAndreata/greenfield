@@ -1,7 +1,7 @@
 package AdminServer.services;
 
 import Utils.Beans.PollutionMeasurements;
-import AdminServer.PollutionManagement.DummyMqttPublisher;
+import AdminServer.Mqtt.DummyMqttPublisher;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -36,5 +36,22 @@ public class StatsService {
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+    }
+
+    @Path("number-of-measurements")
+    @GET
+    @Produces({"application/json", "application/xml"})
+    public Response getTotalNumberOfMeasurements() {
+        return Response.ok(PollutionMeasurements.getInstance().getNumberOfMeasurements()).build();
+    }
+
+    @Path("number-of-measurements/{robotID}")
+    @GET
+    @Produces({"application/json", "application/xml"})
+    public Response getTotalNumberOfMeasurements(@PathParam("robotID") String robotID) {
+        Integer numberOfMeasurements = PollutionMeasurements.getInstance().getNumberOfMeasurements(robotID);
+        if (numberOfMeasurements == null)
+            return Response.status(Response.Status.NOT_FOUND).build();
+        return Response.ok(numberOfMeasurements).build();
     }
 }

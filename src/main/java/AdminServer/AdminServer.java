@@ -1,7 +1,6 @@
 package AdminServer;
 
-import Utils.Beans.PollutionMeasurements;
-import AdminServer.PollutionManagement.MqttSubscriber;
+import AdminServer.Mqtt.MqttSubscriber;
 import com.sun.jersey.api.container.httpserver.HttpServerFactory;
 import com.sun.net.httpserver.HttpServer;
 
