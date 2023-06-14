@@ -1,8 +1,8 @@
 package AdminServer.services;
 
-import Utils.Beans.Position;
-import Utils.Beans.RobotData;
-import Utils.Beans.RobotList;
+import Utils.SharedBeans.Position;
+import Utils.SharedBeans.RobotData;
+import AdminServer.Beans.RobotList;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;

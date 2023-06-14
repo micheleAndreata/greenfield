@@ -1,7 +1,7 @@
 package CleaningRobot.Mqtt;
 
 import CleaningRobot.Sensor.Simulator.Measurement;
-import Utils.Beans.RobotMeasure;
+import Utils.SharedBeans.RobotMeasure;
 import com.google.gson.Gson;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -10,8 +10,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.List;
 import java.util.logging.Logger;
-
-import static Utils.Config.BROKER_ADDRESS;
 
 public class MqttPublisher extends Thread{
     private final String topic;

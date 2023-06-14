@@ -1,6 +1,6 @@
 package AdminServer.Mqtt;
 
-import Utils.Beans.RobotMeasure;
+import Utils.SharedBeans.RobotMeasure;
 import com.google.gson.Gson;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;

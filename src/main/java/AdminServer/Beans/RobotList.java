@@ -1,4 +1,7 @@
-package Utils.Beans;
+package AdminServer.Beans;
+
+import Utils.SharedBeans.Position;
+import Utils.SharedBeans.RobotData;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

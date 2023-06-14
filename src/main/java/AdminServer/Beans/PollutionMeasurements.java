@@ -1,4 +1,6 @@
-package Utils.Beans;
+package AdminServer.Beans;
+
+import Utils.SharedBeans.RobotMeasure;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

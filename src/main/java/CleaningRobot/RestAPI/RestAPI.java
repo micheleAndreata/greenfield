@@ -1,6 +1,6 @@
 package CleaningRobot.RestAPI;
 
-import Utils.Beans.RobotData;
+import Utils.SharedBeans.RobotData;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;

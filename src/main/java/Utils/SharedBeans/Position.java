@@ -1,4 +1,4 @@
-package Utils.Beans;
+package Utils.SharedBeans;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

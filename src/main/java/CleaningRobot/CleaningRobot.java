@@ -2,8 +2,8 @@ package CleaningRobot;
 
 import CleaningRobot.Mqtt.MqttPublisher;
 import CleaningRobot.RestAPI.RestAPI;
-import Utils.Beans.RobotData;
-import Utils.Beans.RobotList;
+import Utils.SharedBeans.RobotData;
+import AdminServer.Beans.RobotList;
 import CleaningRobot.Sensor.SensorListener;
 import CleaningRobot.Sensor.MBuffer;
 import CleaningRobot.Sensor.Simulator.PM10Simulator;

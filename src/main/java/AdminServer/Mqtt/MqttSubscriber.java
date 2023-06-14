@@ -1,7 +1,7 @@
 package AdminServer.Mqtt;
 
-import Utils.Beans.PollutionMeasurements;
-import Utils.Beans.RobotMeasure;
+import AdminServer.Beans.PollutionMeasurements;
+import Utils.SharedBeans.RobotMeasure;
 import com.google.gson.Gson;
 import org.eclipse.paho.client.mqttv3.*;
 
