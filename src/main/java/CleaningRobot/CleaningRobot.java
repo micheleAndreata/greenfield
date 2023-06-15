@@ -103,7 +103,7 @@ public class CleaningRobot {
         logger.info("Started publishing data");
     }
 
-    public boolean presentToOthers() {
-        return true;
+    public void presentToOthers() {
+
     }
 }

@@ -40,10 +40,6 @@ public class MqttPublisher extends Thread{
             }
             sendData();
         }
-    }
-
-    public void stopMeGently() {
-        stopCondition = true;
         try {
             if (mqttClient.isConnected())
                 mqttClient.disconnect();
@@ -52,6 +48,10 @@ public class MqttPublisher extends Thread{
             logger.severe("Exception: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void stopMeGently() {
+        stopCondition = true;
     }
 
     private void initializeMqttClient() {
