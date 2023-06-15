@@ -16,16 +16,14 @@ public class RobotList {
     @XmlElement(name="robots")
     private final ArrayList<RobotData> robots;
 
-    private static RobotList instance;
+    private static final RobotList instance = new RobotList();
 
     private RobotList() {
         robots = new ArrayList<>();
     }
 
-    public synchronized static RobotList getInstance() {
-        if (instance == null) {
-            instance = new RobotList();
-        }
+    // TODO: RobotList is only accessed by RobotDispatcherService so should not be a singleton
+    public static RobotList getInstance() {
         return instance;
     }
 
@@ -35,6 +33,11 @@ public class RobotList {
             return true;
         }
         return false;
+    }
+
+    public synchronized RobotData getRobot(String robotID) {
+        RobotData robot = new RobotData(robotID, 0, "localhost", 0, new Position(0, 0));
+        return robots.get(robots.indexOf(robot));
     }
 
     public synchronized void removeRobot(String robotID) {
