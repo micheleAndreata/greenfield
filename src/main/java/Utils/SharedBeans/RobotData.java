@@ -1,5 +1,7 @@
 package Utils.SharedBeans;
 
+import CleaningRobot.RobotP2P.BotNetServiceOuterClass;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -23,6 +25,17 @@ public class RobotData {
         this.ipAddress = ipAddress;
         this.district = district;
         this.gridPos = gridPos;
+    }
+
+    public RobotData(BotNetServiceOuterClass.RobotDataProto robotDataProto){
+        this(robotDataProto.getId(),
+                robotDataProto.getGrpcPort(),
+                robotDataProto.getIpAddress(),
+                robotDataProto.getDistrict(),
+                new Position(
+                        robotDataProto.getGridPos().getX(),
+                        robotDataProto.getGridPos().getY()
+                ));
     }
 
     public RobotData(String robotID, int grpcPort, String ipAddress) {
@@ -91,5 +104,17 @@ public class RobotData {
 
     public Position getGridPos() {
         return gridPos;
+    }
+
+    public BotNetServiceOuterClass.RobotDataProto toProto() {
+        return BotNetServiceOuterClass.RobotDataProto.newBuilder()
+                .setId(robotID)
+                .setGrpcPort(grpcPort)
+                .setIpAddress(ipAddress)
+                .setDistrict(district)
+                .setGridPos(BotNetServiceOuterClass.RobotDataProto.Position.newBuilder()
+                        .setX(gridPos.getX())
+                        .setY(gridPos.getY()))
+                .build();
     }
 }

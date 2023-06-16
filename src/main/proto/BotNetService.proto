@@ -1,0 +1,23 @@
+package CleaningRobot.RobotP2P;
+
+message RobotDataProto {
+  required string id = 1;
+  required int32 grpcPort = 2;
+  required string ipAddress = 3;
+  required int32 district = 4;
+
+  message Position {
+    required int32 x = 1;
+    required int32 y = 2;
+  }
+  required Position gridPos = 5;
+}
+
+message Status {
+  required bool status = 1;
+}
+
+service BotNetService {
+  rpc hello(RobotDataProto) returns (Status);
+  rpc goodbye(RobotDataProto) returns (Status);
+}

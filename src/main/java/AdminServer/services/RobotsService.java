@@ -3,13 +3,11 @@ package AdminServer.services;
 import AdminServer.Beans.Districts;
 import Utils.SharedBeans.Position;
 import Utils.SharedBeans.RobotData;
-import AdminServer.Beans.RobotList;
+import Utils.SharedBeans.RobotList;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.awt.*;
 import java.util.Arrays;
-import java.util.Random;
 import java.util.logging.Logger;
 
 @Path("robots")
