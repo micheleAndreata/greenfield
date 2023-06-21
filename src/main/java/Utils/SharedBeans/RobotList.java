@@ -5,6 +5,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
+import java.util.List;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -19,7 +20,6 @@ public class RobotList {
         robots = new ArrayList<>();
     }
 
-    // TODO: RobotList is only accessed by RobotDispatcherService so should not be a singleton
     public static RobotList getInstance() {
         return instance;
     }
@@ -46,8 +46,8 @@ public class RobotList {
         robots.remove(robot);
     }
 
-    public synchronized void removeRobot(RobotData robot) {
-        robots.remove(robot);
+    public synchronized void removeRobots(List<RobotData> robotsToRemove) {
+        robots.removeAll(robotsToRemove);
     }
 
     public synchronized int size() {

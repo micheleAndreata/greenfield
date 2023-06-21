@@ -44,8 +44,8 @@ public class MBuffer implements Buffer {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    logger.severe("Interrupted while waiting for data");
-                    e.printStackTrace();
+                    hasEnoughData = false;
+                    return null;
                 }
             }
             List<Measurement> window = new ArrayList<>(measurements.subList(0, windowSize));

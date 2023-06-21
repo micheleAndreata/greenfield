@@ -23,6 +23,12 @@ public class RestAPI {
         return postRequest(client, requestUrl, jsonData);
     }
 
+    public ClientResponse removeRobot(RobotData robotData) {
+        String path = "/robots/remove/";
+        String requestUrl = serverAddress + path + robotData.getRobotID();
+        return deleteRequest(client, requestUrl);
+    }
+
     public static ClientResponse postRequest(Client client, String url, String data) {
         WebResource webResource = client.resource(url);
         try {

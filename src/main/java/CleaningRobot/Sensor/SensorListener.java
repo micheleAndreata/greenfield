@@ -28,6 +28,9 @@ public class SensorListener extends Thread {
         while(!stopCondition) {
             List<Measurement> measurements = mBuffer.readAllAndClean();
 
+            if (measurements == null)
+                break;
+
             String id = measurements.get(0).getId();
             String type = measurements.get(0).getType();
             double averageValue = 0;

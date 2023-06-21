@@ -8,6 +8,7 @@ import Utils.SharedBeans.RobotList;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 @Path("robots")
@@ -30,7 +31,7 @@ public class RobotsService {
         newRobot.setDistrict(district);
         newRobot.setGridPos(newPos);
 
-        if (newRobot.getRobotID() == null) {
+        if (newRobot.getRobotID() == null || Objects.equals(newRobot.getRobotID(), "")) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Robot ID cannot be null")
                     .build();

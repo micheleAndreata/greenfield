@@ -33,7 +33,7 @@ public class MqttPublisher extends Thread{
         while (!stopCondition) {
             // TODO: maybe another option to busy waiting?
             try {
-                sleep(15000);
+                sleep(15000); //use wait?
             } catch (InterruptedException e) {
                 logger.severe("Exception: " + e.getMessage());
                 e.printStackTrace();
