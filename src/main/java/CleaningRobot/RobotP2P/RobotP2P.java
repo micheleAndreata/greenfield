@@ -33,9 +33,9 @@ public class RobotP2P {
         }
     }
 
-    public void stopMeGently() {
+    public void stop() {
         grpcServer.shutdown();
-        errorHandler.stopMeGently();
+        errorHandler.interrupt();
     }
 
     public void presentToOthers() {

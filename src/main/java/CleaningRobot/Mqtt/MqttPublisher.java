@@ -35,23 +35,11 @@ public class MqttPublisher extends Thread{
             try {
                 sleep(15000); //use wait?
             } catch (InterruptedException e) {
-                logger.severe("Exception: " + e.getMessage());
-                e.printStackTrace();
+                break;
             }
             sendData();
         }
-        try {
-            if (mqttClient.isConnected())
-                mqttClient.disconnect();
-        } catch (MqttException e) {
-            // TODO: handle this exception
-            logger.severe("Exception: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public void stopMeGently() {
-        stopCondition = true;
+        disconnect();
     }
 
     private void initializeMqttClient() {
@@ -77,6 +65,19 @@ public class MqttPublisher extends Thread{
         message.setQos(qos);
         try {
             mqttClient.publish(topic, message);
+        } catch (MqttException e) {
+            // TODO: handle this exception
+            logger.severe("Error when publishing");
+            e.printStackTrace();
+        }
+    }
+
+    public void disconnect() {
+        try {
+            if (mqttClient.isConnected()) {
+                mqttClient.disconnect();
+            }
+
         } catch (MqttException e) {
             // TODO: handle this exception
             logger.severe("Exception: " + e.getMessage());

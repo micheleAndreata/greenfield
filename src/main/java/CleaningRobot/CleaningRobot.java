@@ -111,8 +111,8 @@ public class CleaningRobot {
     public void stop() {
         sensor.stopMeGently();
         sensorListener.interrupt();
-        mqttPublisher.stopMeGently();
-        robotP2P.stopMeGently();
+        mqttPublisher.interrupt();
+        robotP2P.stop();
     }
 
     public void startSensor() {
@@ -138,8 +138,6 @@ public class CleaningRobot {
 
     public static boolean isTcpPortAvailable(int port) {
         try (ServerSocket serverSocket = new ServerSocket()) {
-            // setReuseAddress(false) is required only on macOS,
-            // otherwise the code will not work correctly on that platform
             serverSocket.setReuseAddress(false);
             serverSocket.bind(new InetSocketAddress(InetAddress.getByName("localhost"), port), 1);
             return true;
