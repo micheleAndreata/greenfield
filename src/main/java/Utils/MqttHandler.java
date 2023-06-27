@@ -54,7 +54,8 @@ public class MqttHandler {
             }
         }
         else {
-            throw new RuntimeException("No response from mqtt broker. Shutting down");
+            logger.severe("No response from mqtt broker. Shutting down");
+            System.exit(0);
         }
     }
 
@@ -91,7 +92,7 @@ public class MqttHandler {
         }
     }
 
-    public void initializeSubscriber(MqttCallback mqttCallback) {
+    public void setCallback(MqttCallback mqttCallback) {
         mqttClient.setCallback(mqttCallback);
     }
 

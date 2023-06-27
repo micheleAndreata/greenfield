@@ -1,12 +1,10 @@
 package CleaningRobot.Mqtt;
 
 import CleaningRobot.Sensor.Simulator.Measurement;
+import Utils.MqttHandler;
 import Utils.SharedBeans.RobotMeasure;
 import com.google.gson.Gson;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.*;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -16,7 +14,7 @@ public class MqttPublisher extends Thread{
     private final String robotID;
     private final String brokerUrl;
     private final int qos;
-    private MqttClient mqttClient;
+    private MqttHandler mqttHandler;
     private volatile boolean stopCondition = false;
     private static final Logger logger = Logger.getLogger(MqttPublisher.class.getSimpleName());
 
@@ -25,7 +23,7 @@ public class MqttPublisher extends Thread{
         this.robotID = robotID;
         this.brokerUrl = brokerUrl;
         this.qos = qos;
-        initializeMqttClient();
+        initialize();
     }
 
     @Override
@@ -37,24 +35,25 @@ public class MqttPublisher extends Thread{
             } catch (InterruptedException e) {
                 break;
             }
-            sendData();
+            sendData(); // TODO: need to handle waiting for reconnection before sending data
         }
         disconnect();
     }
 
-    private void initializeMqttClient() {
-        try {
-            mqttClient = new MqttClient(brokerUrl, MqttClient.generateClientId());
-            MqttConnectOptions connOpts = new MqttConnectOptions();
-            connOpts.setCleanSession(true);
-            mqttClient.connect(connOpts);
-            logger.info("Connected to " + brokerUrl);
-            logger.info("Publishing to " + topic);
-        } catch (MqttException e) {
-            // TODO: handle this exception
-            logger.severe("Exception: " + e.getMessage());
-            e.printStackTrace();
-        }
+    private void initialize() {
+        mqttHandler = new MqttHandler(brokerUrl, qos);
+        mqttHandler.setCallback(new MqttCallback() {
+            @Override
+            public void connectionLost(Throwable throwable) {
+                logger.warning("Connection lost to " + brokerUrl);
+                mqttHandler.tryConnecting();
+            }
+            @Override
+            public void messageArrived(String s, MqttMessage mqttMessage) {}
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {}
+        });
+        mqttHandler.tryConnecting();
     }
 
     private void sendData() {
@@ -63,26 +62,12 @@ public class MqttPublisher extends Thread{
         String payload = new Gson().toJson(wrapAverages(averages));
         MqttMessage message = new MqttMessage(payload.getBytes());
         message.setQos(qos);
-        try {
-            mqttClient.publish(topic, message);
-        } catch (MqttException e) {
-            // TODO: handle this exception
-            logger.severe("Error when publishing");
-            e.printStackTrace();
-        }
+
+        mqttHandler.publish(topic, message);
     }
 
     public void disconnect() {
-        try {
-            if (mqttClient.isConnected()) {
-                mqttClient.disconnect();
-            }
-
-        } catch (MqttException e) {
-            // TODO: handle this exception
-            logger.severe("Exception: " + e.getMessage());
-            e.printStackTrace();
-        }
+        mqttHandler.disconnect();
     }
 
     public RobotMeasure[] wrapAverages(List<Measurement> averages) {
