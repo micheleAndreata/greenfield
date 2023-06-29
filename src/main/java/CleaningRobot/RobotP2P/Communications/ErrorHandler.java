@@ -1,4 +1,4 @@
-package CleaningRobot.RobotP2P;
+package CleaningRobot.RobotP2P.Communications;
 
 import CleaningRobot.RestAPI.RestAPI;
 import Utils.SharedBeans.RobotData;
@@ -6,7 +6,6 @@ import Utils.SharedBeans.RobotList;
 import com.sun.jersey.api.client.ClientResponse;
 
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 
 public class ErrorHandler extends Thread {

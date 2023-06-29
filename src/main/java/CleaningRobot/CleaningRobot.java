@@ -88,7 +88,7 @@ public class CleaningRobot {
         }
     }
 
-    public int register() {
+    private int register() {
         ClientResponse response = restAPI.addRobot(robotData);
         if (response == null) {
             logger.severe("Server not available");
@@ -115,25 +115,33 @@ public class CleaningRobot {
         robotP2P.stop();
     }
 
-    public void startSensor() {
+    private void startSensor() {
         sensor.start();
         sensorListener.start();
         logger.info("Sensor started");
     }
 
-    public void startPublishingData() {
+    private void startPublishingData() {
         mqttPublisher = new MqttPublisher(robotData.getDistrict(), robotData.getRobotID(), BROKER_ADDRESS, QOS);
         mqttPublisher.start();
         logger.info("Started publishing data to mqtt broker");
     }
 
-    public void startP2P() {
+    private void startP2P() {
         robotP2P = new RobotP2P(robotData, serverAddress);
         robotP2P.start();
     }
 
-    public void presentToOthers() {
+    private void presentToOthers() {
         robotP2P.presentToOthers();
+    }
+
+    public RobotData getRobotData() {
+        return robotData;
+    }
+
+    public void sleep() throws InterruptedException {
+        Thread.sleep(10000);
     }
 
     public static boolean isTcpPortAvailable(int port) {

@@ -1,5 +1,7 @@
 package CleaningRobot.RobotP2P;
 
+import CleaningRobot.RobotP2P.Communications.Communications;
+import CleaningRobot.RobotP2P.Communications.ErrorHandler;
 import CleaningRobot.RobotP2P.GrpcServices.BotNetServiceImpl;
 import Utils.SharedBeans.RobotData;
 import Utils.SharedBeans.RobotList;

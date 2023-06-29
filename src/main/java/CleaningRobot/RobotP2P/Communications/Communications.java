@@ -1,5 +1,7 @@
-package CleaningRobot.RobotP2P;
+package CleaningRobot.RobotP2P.Communications;
 
+import CleaningRobot.RobotP2P.BotNetServiceGrpc;
+import CleaningRobot.RobotP2P.Mechanic.RobotsAnswers;
 import Utils.SharedBeans.RobotData;
 import Utils.SharedBeans.RobotList;
 import io.grpc.ManagedChannel;
@@ -23,6 +25,10 @@ public class Communications {
         broadcastMessage(sendingRobot, Communications::goodbye);
     }
 
+    public static void broadcastRequestMaintenance(RobotData sendingRobot) {
+        broadcastMessage(sendingRobot, Communications::requestMaintenance);
+    }
+
     public static void broadcastMessage(RobotData sendingRobot, BiConsumer<RobotData, RobotData> messageHandler) {
         for(RobotData targetRobot : RobotList.getInstance().getList()) {
             if (targetRobot.equals(sendingRobot))
@@ -36,7 +42,7 @@ public class Communications {
                 forTarget(targetRobot.getIPAddress() + ":" + targetRobot.getGrpcPort()).usePlaintext().build();
         BotNetServiceStub stub = BotNetServiceGrpc.newStub(channel);
 
-        BotNetServiceOuterClass.RobotDataProto request = callingRobot.toProto();
+        RobotDataProto request = callingRobot.toProto();
 
         CommQueue.getInstance().incrementOpenChannels();
 
@@ -63,7 +69,7 @@ public class Communications {
                 forTarget(targetRobot.getIPAddress() + ":" + targetRobot.getGrpcPort()).usePlaintext().build();
         BotNetServiceStub stub = BotNetServiceGrpc.newStub(channel);
 
-        BotNetServiceOuterClass.RobotDataProto request = callingRobot.toProto();
+        RobotDataProto request = callingRobot.toProto();
 
         CommQueue.getInstance().incrementOpenChannels();
 
@@ -81,6 +87,54 @@ public class Communications {
             public void onCompleted() {
                 channel.shutdownNow();
                 CommQueue.getInstance().decrementOpenChannels();
+            }
+        });
+    }
+
+    public static void requestMaintenance(RobotData callingRobot, RobotData targetRobot) {
+        ManagedChannel channel = ManagedChannelBuilder.
+                forTarget(targetRobot.getIPAddress() + ":" + targetRobot.getGrpcPort()).usePlaintext().build();
+        BotNetServiceStub stub = BotNetServiceGrpc.newStub(channel);
+
+        MaintenanceRequest request = MaintenanceRequest.newBuilder()
+                .setRobotID(callingRobot.getRobotID())
+                .setTimestamp(System.currentTimeMillis())
+                .build();
+
+        stub.requestMaintenance(request, new StreamObserver<Status>() {
+            @Override
+            public void onNext(Status value) {
+                if (value.getStatus())
+                    RobotsAnswers.getInstance().add(value.getRobotID());
+            }
+            @Override
+            public void onError(Throwable t) {
+                logger.severe("error when talking to robot " + targetRobot.getRobotID());
+            }
+            @Override
+            public void onCompleted() {
+                channel.shutdownNow();
+            }
+        });
+    }
+
+    public static void freeMechanic(RobotData callingRobot, RobotData targetRobot) {
+        ManagedChannel channel = ManagedChannelBuilder.
+                forTarget(targetRobot.getIPAddress() + ":" + targetRobot.getGrpcPort()).usePlaintext().build();
+        BotNetServiceStub stub = BotNetServiceGrpc.newStub(channel);
+
+        Status response = Status.newBuilder().setStatus(true).setRobotID(callingRobot.getRobotID()).build();
+
+        stub.freeMechanic(response, new StreamObserver<Status>() {
+            @Override
+            public void onNext(Status value) {}
+            @Override
+            public void onError(Throwable t) {
+                logger.severe("error when talking to robot " + targetRobot.getRobotID());
+            }
+            @Override
+            public void onCompleted() {
+                channel.shutdownNow();
             }
         });
     }

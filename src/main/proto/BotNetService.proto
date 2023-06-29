@@ -14,10 +14,18 @@ message RobotDataProto {
 }
 
 message Status {
-  required bool status = 1;
+  required string robotID = 1;
+  required bool status = 2;
+}
+
+message MaintenanceRequest {
+  required string robotID = 1;
+  required int64 timestamp = 2;
 }
 
 service BotNetService {
   rpc hello(RobotDataProto) returns (Status);
   rpc goodbye(RobotDataProto) returns (Status);
+  rpc requestMaintenance(MaintenanceRequest) returns (Status);
+  rpc freeMechanic(Status) returns (Status);
 }

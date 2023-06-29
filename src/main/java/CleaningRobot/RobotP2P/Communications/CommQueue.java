@@ -1,4 +1,4 @@
-package CleaningRobot.RobotP2P;
+package CleaningRobot.RobotP2P.Communications;
 
 import Utils.SharedBeans.RobotData;
 
