@@ -1,4 +1,4 @@
-package CleaningRobot.RobotP2P.Mechanic;
+package CleaningRobot.RobotP2P.MechanicHandler;
 
 public class MechanicState {
     private volatile boolean inMaintenance = false;
@@ -29,7 +29,7 @@ public class MechanicState {
     public void needMaintenance() {
         synchronized (lockNeedMaintenance) {
             needingMaintenance = true;
-            notifyAll();
+            lockNeedMaintenance.notifyAll();
         }
         synchronized (lockTimestamp) {
             requestTimestamp = System.currentTimeMillis();
@@ -87,11 +87,11 @@ public class MechanicState {
     public void exitMechanic() {
         synchronized (lockInMaintenance) {
             inMaintenance = false;
-            notifyAll();
+            lockInMaintenance.notifyAll();
         }
         synchronized (lockNeedMaintenance) {
             needingMaintenance = false;
-            notifyAll();
+            lockNeedMaintenance.notifyAll();
         }
     }
 

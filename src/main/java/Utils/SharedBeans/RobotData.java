@@ -80,7 +80,7 @@ public class RobotData {
         return "RobotData{" +
                 "robotID='" + robotID + '\'' +
                 ", grpcPort=" + grpcPort +
-                ", ipAddress='" + ipAddress +
+                ", ipAddress='" + ipAddress + '\'' +
                 ", district=" + district +
                 ", gridPos=" + gridPos +
                 '}';

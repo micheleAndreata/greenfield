@@ -2,6 +2,9 @@ package CleaningRobot;
 
 import CleaningRobot.Mqtt.MqttPublisher;
 import CleaningRobot.RestAPI.RestAPI;
+import CleaningRobot.RobotP2P.MechanicHandler.MalfunctionSimulator;
+import CleaningRobot.RobotP2P.MechanicHandler.MechanicHandler;
+import CleaningRobot.RobotP2P.MechanicHandler.MechanicState;
 import CleaningRobot.RobotP2P.RobotP2P;
 import Utils.SharedBeans.RobotData;
 import Utils.SharedBeans.RobotList;
@@ -31,6 +34,9 @@ public class CleaningRobot {
     SensorListener sensorListener;
     MqttPublisher mqttPublisher;
     RobotP2P robotP2P;
+    MechanicHandler mechanicHandler;
+    MalfunctionSimulator malfunctionSimulator;
+
     private static final Logger logger = Logger.getLogger(CleaningRobot.class.getSimpleName());
     static {
         Locale.setDefault(new Locale("en", "EN"));
@@ -47,11 +53,21 @@ public class CleaningRobot {
         cleaningRobot.startP2P();
         cleaningRobot.presentToOthers();
         cleaningRobot.startPublishingData();
+        cleaningRobot.startMechanicHandler();
 
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("\n*** Press enter to stop Robot ***\n");
-        inFromUser.readLine();
-
+        System.out.println("write exit to stop robot, fix to go to the mechanic");
+        while(true) {
+            String input = inFromUser.readLine();
+            if (input.equals("fix")) {
+                MechanicState.getInstance().needMaintenance();
+            }
+            if (input.equals("exit")) {
+                break;
+            }
+        }
+        logger.info("Leaving city");
+        cleaningRobot.leaveCity();
         logger.info("Stopping robot");
         cleaningRobot.stop();
         logger.info("Robot stopped");
@@ -63,29 +79,7 @@ public class CleaningRobot {
         this.sensor = new PM10Simulator(MBuffer.getInstance());
         this.sensorListener = new SensorListener();
 
-        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-
-        System.out.print("Insert robot ID: ");
-        String robotID = inFromUser.readLine();
-
-        System.out.print("Insert port for grpc: ");
-        int ownGrpcPort = Integer.parseInt(inFromUser.readLine());
-        while(!isTcpPortAvailable(ownGrpcPort)) {
-            System.out.print("Port not available. Insert another port for grpc: ");
-            ownGrpcPort = Integer.parseInt(inFromUser.readLine());
-        }
-
-        String ownIpAddress = "localhost";
-
-        this.robotData = new RobotData(robotID, ownGrpcPort, ownIpAddress);
-        int status = register();
-        while (status != 0) {
-            if (status == -1)
-                throw new RuntimeException("A problem occurred while registering");
-            System.out.print("ID already taken. Insert another robot ID: ");
-            this.robotData.setRobotID(inFromUser.readLine());
-            status = register();
-        }
+        promptData();
     }
 
     private int register() {
@@ -108,11 +102,18 @@ public class CleaningRobot {
         return 0;
     }
 
+    public void leaveCity() {
+        restAPI.removeRobot(robotData);
+        robotP2P.notifyExit();
+    }
+
     public void stop() {
         sensor.stopMeGently();
         sensorListener.interrupt();
         mqttPublisher.interrupt();
         robotP2P.stop();
+        malfunctionSimulator.interrupt();
+        mechanicHandler.stopMeGently();
     }
 
     private void startSensor() {
@@ -132,6 +133,13 @@ public class CleaningRobot {
         robotP2P.start();
     }
 
+    private void startMechanicHandler() {
+        this.mechanicHandler = new MechanicHandler(robotData);
+        mechanicHandler.start();
+        malfunctionSimulator = new MalfunctionSimulator();
+        malfunctionSimulator.start();
+    }
+
     private void presentToOthers() {
         robotP2P.presentToOthers();
     }
@@ -140,8 +148,42 @@ public class CleaningRobot {
         return robotData;
     }
 
-    public void sleep() throws InterruptedException {
-        Thread.sleep(10000);
+    private void promptData() throws IOException {
+        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+
+        System.out.print("Insert robot ID: ");
+        String robotID = inFromUser.readLine();
+
+        int ownGrpcPort = 0;
+        boolean notANumber = false;
+        boolean notAvailable = false;
+        System.out.print("Insert port for grpc: ");
+        do {
+            try {
+                ownGrpcPort = Integer.parseInt(inFromUser.readLine());
+                notANumber = false;
+                notAvailable = !isTcpPortAvailable(ownGrpcPort);
+                if (notAvailable) {
+                    System.out.print("Port not available. Insert another port for grpc: ");
+                }
+            }
+            catch (NumberFormatException e) {
+                System.out.print("Not a number. Insert another port for grpc: ");
+                notANumber = true;
+            }
+        } while (notAvailable || notANumber);
+
+        String ownIpAddress = "localhost";
+
+        this.robotData = new RobotData(robotID, ownGrpcPort, ownIpAddress);
+        int status = register();
+        while (status != 0) {
+            if (status == -1)
+                throw new RuntimeException("A problem occurred while registering");
+            System.out.print("ID already taken. Insert another robot ID: ");
+            this.robotData.setRobotID(inFromUser.readLine());
+            status = register();
+        }
     }
 
     public static boolean isTcpPortAvailable(int port) {

@@ -1,4 +1,4 @@
-package CleaningRobot.RobotP2P.Mechanic;
+package CleaningRobot.RobotP2P.MechanicHandler;
 
 import Utils.SharedBeans.RobotList;
 
@@ -27,12 +27,6 @@ public class RobotsAnswers {
         }
     }
 
-    public synchronized List<String> readAllAndClean() {
-        List<String> ans = new ArrayList<>(answers);
-        answers.clear();
-        return ans;
-    }
-
     public synchronized void waitForAllAnswers() throws InterruptedException {
         while(answers.size() != RobotList.getInstance().size()) {
             try {
@@ -42,5 +36,6 @@ public class RobotsAnswers {
                 throw new InterruptedException();
             }
         }
+        answers.clear();
     }
 }

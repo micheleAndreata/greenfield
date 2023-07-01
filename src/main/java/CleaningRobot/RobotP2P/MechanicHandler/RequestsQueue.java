@@ -1,4 +1,4 @@
-package CleaningRobot.RobotP2P.Mechanic;
+package CleaningRobot.RobotP2P.MechanicHandler;
 
 import CleaningRobot.RobotP2P.BotNetServiceOuterClass.*;
 

@@ -1,7 +1,8 @@
 package CleaningRobot.RobotP2P.Communications;
 
 import CleaningRobot.RobotP2P.BotNetServiceGrpc;
-import CleaningRobot.RobotP2P.Mechanic.RobotsAnswers;
+import CleaningRobot.RobotP2P.MechanicHandler.MechanicState;
+import CleaningRobot.RobotP2P.MechanicHandler.RobotsAnswers;
 import Utils.SharedBeans.RobotData;
 import Utils.SharedBeans.RobotList;
 import io.grpc.ManagedChannel;
@@ -17,23 +18,24 @@ import CleaningRobot.RobotP2P.BotNetServiceOuterClass.*;
 public class Communications {
     private static final Logger logger = Logger.getLogger(Communications.class.getSimpleName());
 
-    public static void broadcastHello(RobotData sendingRobot) {
-        broadcastMessage(sendingRobot, Communications::hello);
+    public static void broadcastHello(RobotData callingRobot) {
+        broadcastMessage(callingRobot, Communications::hello);
     }
 
-    public static void broadcastGoodbye(RobotData sendingRobot) {
-        broadcastMessage(sendingRobot, Communications::goodbye);
+    public static void broadcastGoodbye(RobotData callingRobot) {
+        broadcastMessage(callingRobot, Communications::goodbye);
     }
 
-    public static void broadcastRequestMaintenance(RobotData sendingRobot) {
-        broadcastMessage(sendingRobot, Communications::requestMaintenance);
+    public static void broadcastRequestMaintenance(RobotData callingRobot) {
+        RobotsAnswers.getInstance().add(callingRobot.getRobotID());
+        broadcastMessage(callingRobot, Communications::requestMaintenance);
     }
 
-    public static void broadcastMessage(RobotData sendingRobot, BiConsumer<RobotData, RobotData> messageHandler) {
+    public static void broadcastMessage(RobotData callingRobot, BiConsumer<RobotData, RobotData> messageHandler) {
         for(RobotData targetRobot : RobotList.getInstance().getList()) {
-            if (targetRobot.equals(sendingRobot))
+            if (targetRobot.equals(callingRobot))
                 continue;
-            messageHandler.accept(sendingRobot, targetRobot);
+            messageHandler.accept(callingRobot, targetRobot);
         }
     }
 
@@ -44,7 +46,7 @@ public class Communications {
 
         RobotDataProto request = callingRobot.toProto();
 
-        CommQueue.getInstance().incrementOpenChannels();
+        //CommQueue.getInstance().incrementOpenChannels();
 
         stub.hello(request, new StreamObserver<Status>() {
             @Override
@@ -53,13 +55,13 @@ public class Communications {
             public void onError(Throwable t) {
                 logger.warning("error when talking to robot " + targetRobot.getRobotID());
                 channel.shutdownNow();
-                CommQueue.getInstance().decrementOpenChannels();
-                CommQueue.getInstance().addFailedRobot(targetRobot);
+                //CommQueue.getInstance().decrementOpenChannels();
+                //CommQueue.getInstance().addFailedRobot(targetRobot);
             }
             @Override
             public void onCompleted() {
                 channel.shutdownNow();
-                CommQueue.getInstance().decrementOpenChannels();
+                //CommQueue.getInstance().decrementOpenChannels();
             }
         });
     }
@@ -71,7 +73,7 @@ public class Communications {
 
         RobotDataProto request = callingRobot.toProto();
 
-        CommQueue.getInstance().incrementOpenChannels();
+        //CommQueue.getInstance().incrementOpenChannels();
 
         stub.goodbye(request, new StreamObserver<Status>() {
             @Override
@@ -80,13 +82,13 @@ public class Communications {
             public void onError(Throwable t) {
                 logger.warning("error when talking to robot " + targetRobot.getRobotID());
                 channel.shutdownNow();
-                CommQueue.getInstance().decrementOpenChannels();
-                CommQueue.getInstance().addFailedRobot(targetRobot);
+                //CommQueue.getInstance().decrementOpenChannels();
+                //CommQueue.getInstance().addFailedRobot(targetRobot);
             }
             @Override
             public void onCompleted() {
                 channel.shutdownNow();
-                CommQueue.getInstance().decrementOpenChannels();
+                //CommQueue.getInstance().decrementOpenChannels();
             }
         });
     }
@@ -98,18 +100,19 @@ public class Communications {
 
         MaintenanceRequest request = MaintenanceRequest.newBuilder()
                 .setRobotID(callingRobot.getRobotID())
-                .setTimestamp(System.currentTimeMillis())
+                .setTimestamp(MechanicState.getInstance().getRequestTimestamp())
                 .build();
 
         stub.requestMaintenance(request, new StreamObserver<Status>() {
             @Override
             public void onNext(Status value) {
                 if (value.getStatus())
-                    RobotsAnswers.getInstance().add(value.getRobotID());
+                    RobotsAnswers.getInstance().add(targetRobot.getRobotID());
             }
             @Override
             public void onError(Throwable t) {
                 logger.severe("error when talking to robot " + targetRobot.getRobotID());
+                channel.shutdownNow();
             }
             @Override
             public void onCompleted() {
@@ -123,11 +126,12 @@ public class Communications {
                 forTarget(targetRobot.getIPAddress() + ":" + targetRobot.getGrpcPort()).usePlaintext().build();
         BotNetServiceStub stub = BotNetServiceGrpc.newStub(channel);
 
-        Status response = Status.newBuilder().setStatus(true).setRobotID(callingRobot.getRobotID()).build();
+        FreeMechanic request = FreeMechanic.newBuilder().setRobotID(callingRobot.getRobotID()).build();
 
-        stub.freeMechanic(response, new StreamObserver<Status>() {
+        stub.freeMechanic(request, new StreamObserver<Status>() {
             @Override
             public void onNext(Status value) {}
+
             @Override
             public void onError(Throwable t) {
                 logger.severe("error when talking to robot " + targetRobot.getRobotID());

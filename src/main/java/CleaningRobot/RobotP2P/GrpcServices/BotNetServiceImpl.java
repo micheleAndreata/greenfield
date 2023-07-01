@@ -1,8 +1,8 @@
 package CleaningRobot.RobotP2P.GrpcServices;
 
-import CleaningRobot.RobotP2P.Mechanic.MechanicState;
-import CleaningRobot.RobotP2P.Mechanic.RequestsQueue;
-import CleaningRobot.RobotP2P.Mechanic.RobotsAnswers;
+import CleaningRobot.RobotP2P.MechanicHandler.MechanicState;
+import CleaningRobot.RobotP2P.MechanicHandler.RequestsQueue;
+import CleaningRobot.RobotP2P.MechanicHandler.RobotsAnswers;
 import Utils.SharedBeans.RobotList;
 import CleaningRobot.RobotP2P.BotNetServiceGrpc.*;
 import CleaningRobot.RobotP2P.BotNetServiceOuterClass.*;
@@ -35,12 +35,14 @@ public class BotNetServiceImpl extends BotNetServiceImplBase {
         MechanicState mechanicState = MechanicState.getInstance();
         if(mechanicState.isInMaintenance() ||
                 (mechanicState.isNeedingMaintenance() && mechanicState.getRequestTimestamp() < request.getTimestamp())) {
+            logger.info("request maintenance from " + request.getRobotID() + " not accepted");
             RequestsQueue.getInstance().add(request);
             Status response = Status.newBuilder().setStatus(false).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
         else {
+            logger.info("request maintenance from " + request.getRobotID() + " accepted");
             Status response = Status.newBuilder().setStatus(true).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -48,7 +50,7 @@ public class BotNetServiceImpl extends BotNetServiceImplBase {
     }
 
     @Override
-    public void freeMechanic(Status request, StreamObserver<Status> responseObserver) {
+    public void freeMechanic(FreeMechanic request, StreamObserver<Status> responseObserver) {
         RobotsAnswers.getInstance().add(request.getRobotID());
         Status response = Status.newBuilder().setStatus(true).build();
         responseObserver.onNext(response);
