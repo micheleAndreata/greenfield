@@ -1,12 +1,15 @@
 package CleaningRobot.RobotP2P.MechanicHandler;
 
+import CleaningRobot.RobotP2P.Communications.Communications;
+import Utils.SharedBeans.RobotData;
 import Utils.SharedBeans.RobotList;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RobotsAnswers {
-    private final List<String> answers;
+    private final List<String> positiveAnswers;
+    private final List<String> negativeAnswers;
 
     private static RobotsAnswers instance;
     public static RobotsAnswers getInstance() {
@@ -17,25 +20,51 @@ public class RobotsAnswers {
     }
 
     private RobotsAnswers() {
-        answers = new ArrayList<>();
+        positiveAnswers = new ArrayList<>();
+        negativeAnswers = new ArrayList<>();
     }
 
-    public synchronized void add(String robotID) {
-        answers.add(robotID);
-        if (answers.size() == RobotList.getInstance().size()) {
-            notifyAll();
+    public void addPositive(String robotID) {
+        synchronized (positiveAnswers) {
+            positiveAnswers.add(robotID);
+            if(positiveAnswers.size() == RobotList.getInstance().size())
+                positiveAnswers.notifyAll();
         }
     }
 
-    public synchronized void waitForAllAnswers() throws InterruptedException {
-        while(answers.size() != RobotList.getInstance().size()) {
-            try {
-                wait();
+    public void addNegative(String robotID) {
+        synchronized (negativeAnswers) {
+            negativeAnswers.add(robotID);
+        }
+    }
+
+    public void notifyChange() {
+        synchronized (positiveAnswers) {
+            positiveAnswers.notifyAll();
+        }
+
+    }
+
+    public void waitForAllAnswers() throws InterruptedException {
+        synchronized (positiveAnswers) {
+            while(positiveAnswers.size() != RobotList.getInstance().size()) {
+                positiveAnswers.wait(10000);
+                if (positiveAnswers.size() != RobotList.getInstance().size())
+                    areRobotsOK();
             }
-            catch (InterruptedException e) {
-                throw new InterruptedException();
+            positiveAnswers.clear();
+        }
+        synchronized (negativeAnswers) {
+            negativeAnswers.clear();
+        }
+    }
+
+    public void areRobotsOK() {
+        synchronized (negativeAnswers) {
+            for (String robotID : negativeAnswers) {
+                RobotData robot = RobotList.getInstance().getRobot(robotID);
+                Communications.areYouOK(robot);
             }
         }
-        answers.clear();
     }
 }

@@ -112,7 +112,7 @@ public class CleaningRobot {
         sensorListener.interrupt();
         mqttPublisher.interrupt();
         robotP2P.stop();
-        malfunctionSimulator.interrupt();
+        //malfunctionSimulator.interrupt();
         mechanicHandler.stopMeGently();
     }
 
@@ -136,8 +136,8 @@ public class CleaningRobot {
     private void startMechanicHandler() {
         this.mechanicHandler = new MechanicHandler(robotData);
         mechanicHandler.start();
-        malfunctionSimulator = new MalfunctionSimulator();
-        malfunctionSimulator.start();
+        //malfunctionSimulator = new MalfunctionSimulator();
+        //malfunctionSimulator.start();
     }
 
     private void presentToOthers() {

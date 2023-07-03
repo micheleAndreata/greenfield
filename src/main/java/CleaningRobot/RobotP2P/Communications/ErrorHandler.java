@@ -1,6 +1,7 @@
 package CleaningRobot.RobotP2P.Communications;
 
 import CleaningRobot.RestAPI.RestAPI;
+import CleaningRobot.RobotP2P.MechanicHandler.RobotsAnswers;
 import Utils.SharedBeans.RobotData;
 import Utils.SharedBeans.RobotList;
 import com.sun.jersey.api.client.ClientResponse;
@@ -23,11 +24,8 @@ public class ErrorHandler extends Thread {
     public void run() {
         while(!stopCondition) {
             try {
-                synchronized (CommQueue.getInstance()) {
-                    CommQueue.getInstance().wait();
-                }
+                CommQueue.getInstance().waitForAllChannelsClosed();
             } catch (InterruptedException e) {
-                //logger.info("interrupted");
                 stopCondition = true;
                 return;
             }
@@ -37,7 +35,12 @@ public class ErrorHandler extends Thread {
 
     private void handleErrors() {
         List<RobotData> failedRobots = CommQueue.getInstance().getFailedRobotsAndClean();
+        if (failedRobots.isEmpty()) {
+            return;
+        }
         RobotList.getInstance().removeRobots(failedRobots);
+        RobotsAnswers.getInstance().notifyChange();
+        logger.info("Change in RobotList size: " + RobotList.getInstance().size());
         for(RobotData failedRobot : failedRobots) {
             Communications.broadcastGoodbye(failedRobot);
 

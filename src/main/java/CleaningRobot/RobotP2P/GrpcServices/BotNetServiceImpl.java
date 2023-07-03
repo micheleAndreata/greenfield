@@ -1,7 +1,7 @@
 package CleaningRobot.RobotP2P.GrpcServices;
 
 import CleaningRobot.RobotP2P.MechanicHandler.MechanicState;
-import CleaningRobot.RobotP2P.MechanicHandler.RequestsQueue;
+import CleaningRobot.RobotP2P.MechanicHandler.PendingRequests;
 import CleaningRobot.RobotP2P.MechanicHandler.RobotsAnswers;
 import Utils.SharedBeans.RobotList;
 import CleaningRobot.RobotP2P.BotNetServiceGrpc.*;
@@ -36,7 +36,7 @@ public class BotNetServiceImpl extends BotNetServiceImplBase {
         if(mechanicState.isInMaintenance() ||
                 (mechanicState.isNeedingMaintenance() && mechanicState.getRequestTimestamp() < request.getTimestamp())) {
             logger.info("request maintenance from " + request.getRobotID() + " not accepted");
-            RequestsQueue.getInstance().add(request);
+            PendingRequests.getInstance().add(request);
             Status response = Status.newBuilder().setStatus(false).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -51,7 +51,14 @@ public class BotNetServiceImpl extends BotNetServiceImplBase {
 
     @Override
     public void freeMechanic(FreeMechanic request, StreamObserver<Status> responseObserver) {
-        RobotsAnswers.getInstance().add(request.getRobotID());
+        RobotsAnswers.getInstance().addPositive(request.getRobotID());
+        Status response = Status.newBuilder().setStatus(true).build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void areYouOK(Empty request, StreamObserver<Status> responseObserver) {
         Status response = Status.newBuilder().setStatus(true).build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();

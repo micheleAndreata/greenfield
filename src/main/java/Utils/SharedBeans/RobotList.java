@@ -37,6 +37,10 @@ public class RobotList {
         return robots.get(robots.indexOf(robot));
     }
 
+    public synchronized boolean contains(String robotID) {
+        return robots.contains(new RobotData(robotID, 0, "localhost", 0, new Position(0, 0)));
+    }
+
     public synchronized RobotData getRobot(RobotData robot) {
         return robots.get(robots.indexOf(robot));
     }

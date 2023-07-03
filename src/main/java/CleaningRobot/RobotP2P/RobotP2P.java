@@ -28,7 +28,7 @@ public class RobotP2P {
     public void start() {
         try {
             grpcServer.start();
-            //errorHandler.start();
+            errorHandler.start();
         } catch (IOException e) {
             logger.severe(e.getMessage());
             e.printStackTrace();
@@ -37,7 +37,7 @@ public class RobotP2P {
 
     public void stop() {
         grpcServer.shutdown();
-        //errorHandler.interrupt();
+        errorHandler.interrupt();
     }
 
     public void presentToOthers() {

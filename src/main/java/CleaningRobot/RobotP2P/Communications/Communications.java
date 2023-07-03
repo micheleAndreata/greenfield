@@ -27,7 +27,7 @@ public class Communications {
     }
 
     public static void broadcastRequestMaintenance(RobotData callingRobot) {
-        RobotsAnswers.getInstance().add(callingRobot.getRobotID());
+        RobotsAnswers.getInstance().addPositive(callingRobot.getRobotID());
         broadcastMessage(callingRobot, Communications::requestMaintenance);
     }
 
@@ -39,6 +39,19 @@ public class Communications {
         }
     }
 
+    public static void areYouOK(RobotData targetRobot) {
+        ManagedChannel channel = ManagedChannelBuilder.
+                forTarget(targetRobot.getIPAddress() + ":" + targetRobot.getGrpcPort()).usePlaintext().build();
+        BotNetServiceStub stub = BotNetServiceGrpc.newStub(channel);
+
+        Empty request = Empty.newBuilder().build();
+
+        stub.areYouOK(request, new MyStreamObserver<Status>(channel, targetRobot) {
+            @Override
+            public void onNext(Status value) {}
+        });
+    }
+
     public static void hello(RobotData callingRobot, RobotData targetRobot) {
         ManagedChannel channel = ManagedChannelBuilder.
                 forTarget(targetRobot.getIPAddress() + ":" + targetRobot.getGrpcPort()).usePlaintext().build();
@@ -46,23 +59,9 @@ public class Communications {
 
         RobotDataProto request = callingRobot.toProto();
 
-        //CommQueue.getInstance().incrementOpenChannels();
-
-        stub.hello(request, new StreamObserver<Status>() {
+        stub.hello(request, new MyStreamObserver<Status>(channel, targetRobot) {
             @Override
-            public void onNext(Status value) { }
-            @Override
-            public void onError(Throwable t) {
-                logger.warning("error when talking to robot " + targetRobot.getRobotID());
-                channel.shutdownNow();
-                //CommQueue.getInstance().decrementOpenChannels();
-                //CommQueue.getInstance().addFailedRobot(targetRobot);
-            }
-            @Override
-            public void onCompleted() {
-                channel.shutdownNow();
-                //CommQueue.getInstance().decrementOpenChannels();
-            }
+            public void onNext(Status value) {}
         });
     }
 
@@ -73,23 +72,9 @@ public class Communications {
 
         RobotDataProto request = callingRobot.toProto();
 
-        //CommQueue.getInstance().incrementOpenChannels();
-
-        stub.goodbye(request, new StreamObserver<Status>() {
+        stub.goodbye(request, new MyStreamObserver<Status>(channel, targetRobot) {
             @Override
-            public void onNext(Status value) { }
-            @Override
-            public void onError(Throwable t) {
-                logger.warning("error when talking to robot " + targetRobot.getRobotID());
-                channel.shutdownNow();
-                //CommQueue.getInstance().decrementOpenChannels();
-                //CommQueue.getInstance().addFailedRobot(targetRobot);
-            }
-            @Override
-            public void onCompleted() {
-                channel.shutdownNow();
-                //CommQueue.getInstance().decrementOpenChannels();
-            }
+            public void onNext(Status value) {}
         });
     }
 
@@ -103,20 +88,13 @@ public class Communications {
                 .setTimestamp(MechanicState.getInstance().getRequestTimestamp())
                 .build();
 
-        stub.requestMaintenance(request, new StreamObserver<Status>() {
+        stub.requestMaintenance(request, new MyStreamObserver<Status>(channel, targetRobot) {
             @Override
             public void onNext(Status value) {
                 if (value.getStatus())
-                    RobotsAnswers.getInstance().add(targetRobot.getRobotID());
-            }
-            @Override
-            public void onError(Throwable t) {
-                logger.severe("error when talking to robot " + targetRobot.getRobotID());
-                channel.shutdownNow();
-            }
-            @Override
-            public void onCompleted() {
-                channel.shutdownNow();
+                    RobotsAnswers.getInstance().addPositive(targetRobot.getRobotID());
+                else
+                    RobotsAnswers.getInstance().addNegative(targetRobot.getRobotID());
             }
         });
     }
@@ -128,18 +106,37 @@ public class Communications {
 
         FreeMechanic request = FreeMechanic.newBuilder().setRobotID(callingRobot.getRobotID()).build();
 
-        stub.freeMechanic(request, new StreamObserver<Status>() {
+        stub.freeMechanic(request, new MyStreamObserver<Status>(channel, targetRobot) {
             @Override
             public void onNext(Status value) {}
-
-            @Override
-            public void onError(Throwable t) {
-                logger.severe("error when talking to robot " + targetRobot.getRobotID());
-            }
-            @Override
-            public void onCompleted() {
-                channel.shutdownNow();
-            }
         });
+    }
+}
+
+abstract class MyStreamObserver<T> implements StreamObserver<T> {
+    private static final Logger logger = Logger.getLogger(Communications.class.getSimpleName());
+
+    ManagedChannel channel;
+    RobotData targetRobot;
+
+    public MyStreamObserver(ManagedChannel channel, RobotData targetRobot) {
+        this.channel = channel;
+        this.targetRobot = targetRobot;
+        CommQueue.getInstance().incrementOpenChannels();
+    }
+    @Override
+    public abstract void onNext(T value);
+
+    @Override
+    public void onError(Throwable t) {
+        logger.warning("error when talking to robot " + targetRobot.getRobotID());
+        channel.shutdownNow();
+        CommQueue.getInstance().addFailedRobot(targetRobot);
+        CommQueue.getInstance().decrementOpenChannels();
+    }
+    @Override
+    public void onCompleted() {
+        channel.shutdownNow();
+        CommQueue.getInstance().decrementOpenChannels();
     }
 }

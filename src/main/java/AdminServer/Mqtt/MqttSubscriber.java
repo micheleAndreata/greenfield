@@ -39,7 +39,7 @@ public class MqttSubscriber {
             @Override
             public void messageArrived(String topic, MqttMessage message) {
                 RobotMeasure[] robotMeasures = decodeMessage(message);
-                logger.info(Arrays.toString(robotMeasures));
+                //logger.info(Arrays.toString(robotMeasures));
                 pollutionMeasurements.addMeasurements(robotMeasures);
             }
 

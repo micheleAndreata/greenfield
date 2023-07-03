@@ -26,9 +26,12 @@ message FreeMechanic {
   required string robotID = 1;
 }
 
+message Empty {}
+
 service BotNetService {
   rpc hello(RobotDataProto) returns (Status);
   rpc goodbye(RobotDataProto) returns (Status);
   rpc requestMaintenance(MaintenanceRequest) returns (Status);
   rpc freeMechanic(FreeMechanic) returns (Status);
+  rpc areYouOK(Empty) returns (Status);
 }

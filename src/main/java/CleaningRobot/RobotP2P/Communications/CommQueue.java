@@ -44,15 +44,23 @@ public class CommQueue {
         }
     }
 
-    public synchronized void decrementOpenChannels() {
-        openChannels[0]--;
-        if (openChannels[0] == 0)
-            notify();
+    public void decrementOpenChannels() {
+        synchronized (openChannels) {
+            openChannels[0]--;
+            if (openChannels[0] == 0)
+                openChannels.notifyAll();
+        }
     }
 
-    public int[] getOpenChannels() {
+    public void waitForAllChannelsClosed() throws InterruptedException {
         synchronized (openChannels) {
-            return openChannels;
+            while (openChannels[0] != 0) {
+                try {
+                    openChannels.wait();
+                } catch (InterruptedException e) {
+                    throw new InterruptedException();
+                }
+            }
         }
     }
 }

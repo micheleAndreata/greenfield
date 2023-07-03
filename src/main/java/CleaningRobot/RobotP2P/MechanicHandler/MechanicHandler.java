@@ -42,15 +42,20 @@ public class MechanicHandler extends Thread{
                 MechanicState.getInstance().exitMechanic();
 
                 logger.info("Outside mechanic");
-                RobotList robotList = RobotList.getInstance();
-                List<MaintenanceRequest> requests = RequestsQueue.getInstance().readAllAndClean();
-                for (MaintenanceRequest request : requests) {
-                    Communications.freeMechanic(robotData, robotList.getRobot(request.getRobotID()));
-                }
+                freeMechanic();
             }
             catch (InterruptedException e) {
                 logger.warning("Interrupted, proceeding anyway");
             }
+        }
+    }
+
+    private void freeMechanic() {
+        RobotList robotList = RobotList.getInstance();
+        List<MaintenanceRequest> requests = PendingRequests.getInstance().readAllAndClean();
+        for (MaintenanceRequest request : requests) {
+            if (PendingRequests.isStillPending(request))
+                Communications.freeMechanic(robotData, robotList.getRobot(request.getRobotID()));
         }
     }
 
