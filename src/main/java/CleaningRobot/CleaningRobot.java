@@ -66,10 +66,24 @@ public class CleaningRobot {
                 break;
             }
         }
+        logger.info("Stopping robot");
+
+        logger.info("stopping sensor");
+        cleaningRobot.stopSensor();
+
+        logger.info("stopping MqttPublisher");
+        cleaningRobot.stopMqttPublisher();
+
+        logger.info("Stopping mechanic handler");
+        cleaningRobot.stopMalfunctionSimulator();
+        cleaningRobot.stopMechanicHandler();
+
         logger.info("Leaving city");
         cleaningRobot.leaveCity();
-        logger.info("Stopping robot");
-        cleaningRobot.stop();
+
+        logger.info("Stopping robotP2P");
+        cleaningRobot.stopRobotP2P();
+
         logger.info("Robot stopped");
     }
 
@@ -103,17 +117,57 @@ public class CleaningRobot {
     }
 
     public void leaveCity() {
-        restAPI.removeRobot(robotData);
         robotP2P.notifyExit();
+        restAPI.removeRobot(robotData);
     }
 
-    public void stop() {
-        sensor.stopMeGently();
-        sensorListener.interrupt();
-        mqttPublisher.interrupt();
-        robotP2P.stop();
-        //malfunctionSimulator.interrupt();
+    public void stopMechanicHandler() {
         mechanicHandler.stopMeGently();
+        try {
+            mechanicHandler.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopMalfunctionSimulator() {
+        malfunctionSimulator.interrupt();
+        try {
+            malfunctionSimulator.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopRobotP2P() {
+        try {
+            robotP2P.stop();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopSensor() {
+        try {
+            sensor.stopMeGently();
+            sensor.join();
+
+            sensorListener.interrupt();
+            sensorListener.join();
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopMqttPublisher() {
+        logger.info("Stopping mqtt publisher");
+        mqttPublisher.stopMeGently();
+        try {
+            mqttPublisher.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void startSensor() {
@@ -136,16 +190,12 @@ public class CleaningRobot {
     private void startMechanicHandler() {
         this.mechanicHandler = new MechanicHandler(robotData);
         mechanicHandler.start();
-        //malfunctionSimulator = new MalfunctionSimulator();
-        //malfunctionSimulator.start();
+        malfunctionSimulator = new MalfunctionSimulator();
+        malfunctionSimulator.start();
     }
 
     private void presentToOthers() {
         robotP2P.presentToOthers();
-    }
-
-    public RobotData getRobotData() {
-        return robotData;
     }
 
     private void promptData() throws IOException {

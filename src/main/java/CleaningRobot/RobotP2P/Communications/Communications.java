@@ -7,16 +7,13 @@ import Utils.SharedBeans.RobotData;
 import Utils.SharedBeans.RobotList;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
 
 import java.util.function.BiConsumer;
-import java.util.logging.Logger;
 
 import CleaningRobot.RobotP2P.BotNetServiceGrpc.*;
 import CleaningRobot.RobotP2P.BotNetServiceOuterClass.*;
 
 public class Communications {
-    private static final Logger logger = Logger.getLogger(Communications.class.getSimpleName());
 
     public static void broadcastHello(RobotData callingRobot) {
         broadcastMessage(callingRobot, Communications::hello);
@@ -110,33 +107,5 @@ public class Communications {
             @Override
             public void onNext(Status value) {}
         });
-    }
-}
-
-abstract class MyStreamObserver<T> implements StreamObserver<T> {
-    private static final Logger logger = Logger.getLogger(Communications.class.getSimpleName());
-
-    ManagedChannel channel;
-    RobotData targetRobot;
-
-    public MyStreamObserver(ManagedChannel channel, RobotData targetRobot) {
-        this.channel = channel;
-        this.targetRobot = targetRobot;
-        CommQueue.getInstance().incrementOpenChannels();
-    }
-    @Override
-    public abstract void onNext(T value);
-
-    @Override
-    public void onError(Throwable t) {
-        logger.warning("error when talking to robot " + targetRobot.getRobotID());
-        channel.shutdownNow();
-        CommQueue.getInstance().addFailedRobot(targetRobot);
-        CommQueue.getInstance().decrementOpenChannels();
-    }
-    @Override
-    public void onCompleted() {
-        channel.shutdownNow();
-        CommQueue.getInstance().decrementOpenChannels();
     }
 }

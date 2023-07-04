@@ -5,11 +5,9 @@ import Utils.SharedBeans.RobotList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class PendingRequests {
-    private static final Logger logger = Logger.getLogger(PendingRequests.class.getSimpleName());
-    private static PendingRequests instance;
+    private static final PendingRequests instance = new PendingRequests();
 
     private final List<MaintenanceRequest> queue;
 
@@ -18,9 +16,6 @@ public class PendingRequests {
     }
 
     public static PendingRequests getInstance() {
-        if (instance == null) {
-            instance = new PendingRequests();
-        }
         return instance;
     }
 

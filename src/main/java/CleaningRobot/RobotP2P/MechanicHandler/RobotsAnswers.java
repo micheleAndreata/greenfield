@@ -11,11 +11,8 @@ public class RobotsAnswers {
     private final List<String> positiveAnswers;
     private final List<String> negativeAnswers;
 
-    private static RobotsAnswers instance;
+    private static final RobotsAnswers instance = new RobotsAnswers();
     public static RobotsAnswers getInstance() {
-        if (instance == null) {
-            instance = new RobotsAnswers();
-        }
         return instance;
     }
 
@@ -63,7 +60,8 @@ public class RobotsAnswers {
         synchronized (negativeAnswers) {
             for (String robotID : negativeAnswers) {
                 RobotData robot = RobotList.getInstance().getRobot(robotID);
-                Communications.areYouOK(robot);
+                if (robot != null)
+                    Communications.areYouOK(robot);
             }
         }
     }

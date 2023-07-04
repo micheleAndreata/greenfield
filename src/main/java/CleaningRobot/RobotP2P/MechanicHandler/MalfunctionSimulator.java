@@ -11,12 +11,6 @@ public class MalfunctionSimulator extends Thread {
     private static final Logger logger = Logger.getLogger(MalfunctionSimulator.class.getSimpleName());
 
     @Override
-    public synchronized void start() {
-        super.start();
-        stopCondition = false;
-    }
-
-    @Override
     public void run() {
         while (!stopCondition) {
             try {

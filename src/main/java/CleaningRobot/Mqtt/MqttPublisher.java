@@ -33,27 +33,19 @@ public class MqttPublisher extends Thread{
             try {
                 sleep(15000); //use wait?
             } catch (InterruptedException e) {
-                break;
+                stopCondition = true;
+                logger.info("disconnecting forcibly...");
+                mqttHandler.disconnectForcibly();
+                return;
             }
             sendData(); // TODO: need to handle waiting for reconnection before sending data
         }
-        disconnect();
+        mqttHandler.disconnect();
     }
 
     private void initialize() {
         mqttHandler = new MqttHandler(brokerUrl, qos);
-        mqttHandler.setCallback(new MqttCallback() {
-            @Override
-            public void connectionLost(Throwable throwable) {
-                logger.warning("Connection lost to " + brokerUrl);
-                mqttHandler.tryConnecting();
-            }
-            @Override
-            public void messageArrived(String s, MqttMessage mqttMessage) {}
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {}
-        });
-        mqttHandler.tryConnecting();
+        mqttHandler.connect();
     }
 
     private void sendData() {
@@ -63,11 +55,15 @@ public class MqttPublisher extends Thread{
         MqttMessage message = new MqttMessage(payload.getBytes());
         message.setQos(qos);
 
-        mqttHandler.publish(topic, message);
+        try {
+            mqttHandler.publish(topic, message);
+        } catch (MqttException e) {
+            logger.warning("failed to publish message");
+        }
     }
 
-    public void disconnect() {
-        mqttHandler.disconnect();
+    public void stopMeGently() {
+        stopCondition = true;
     }
 
     public RobotMeasure[] wrapAverages(List<Measurement> averages) {

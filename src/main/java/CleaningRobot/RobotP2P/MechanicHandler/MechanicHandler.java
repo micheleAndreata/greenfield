@@ -20,14 +20,8 @@ public class MechanicHandler extends Thread{
     }
 
     @Override
-    public synchronized void start() {
-        super.start();
-        stopCondition = false;
-    }
-
-    @Override
     public void run(){
-        while(!stopCondition) {
+        while(!stopCondition && !Thread.currentThread().isInterrupted()) {
             try {
                 logger.info("Waiting for maintenance interest...");
                 MechanicState.getInstance().waitForMaintenanceInterest();
@@ -39,13 +33,17 @@ public class MechanicHandler extends Thread{
                 MechanicState.getInstance().enterMechanic();
                 logger.info("Inside mechanic");
                 Thread.sleep(10000);
+
                 MechanicState.getInstance().exitMechanic();
 
                 logger.info("Outside mechanic");
                 freeMechanic();
             }
-            catch (InterruptedException e) {
-                logger.warning("Interrupted, proceeding anyway");
+            catch (InterruptedException e){
+                logger.warning("Stopping forcefully");
+                stopCondition = true;
+                Thread.currentThread().interrupt();
+                return;
             }
         }
     }
@@ -61,5 +59,6 @@ public class MechanicHandler extends Thread{
 
     public void stopMeGently() {
         stopCondition = true;
+        MechanicState.getInstance().needMaintenance();
     }
 }

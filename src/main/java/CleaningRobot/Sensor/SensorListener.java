@@ -43,8 +43,6 @@ public class SensorListener extends Thread {
             averageTimestamp = averageTimestamp / windowSize;
             Measurement average = new Measurement(id, type, averageValue, averageTimestamp);
 
-            //logger.info("\nsize: " + measurements.size() + ", average: " + average);
-
             avgsBuffer.add(average);
         }
     }

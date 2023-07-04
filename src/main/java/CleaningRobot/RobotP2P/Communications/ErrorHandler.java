@@ -22,11 +22,12 @@ public class ErrorHandler extends Thread {
 
     @Override
     public void run() {
-        while(!stopCondition) {
+        while(!stopCondition && !Thread.currentThread().isInterrupted()) {
             try {
                 CommQueue.getInstance().waitForAllChannelsClosed();
             } catch (InterruptedException e) {
                 stopCondition = true;
+                Thread.currentThread().interrupt();
                 return;
             }
             handleErrors();

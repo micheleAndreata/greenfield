@@ -35,9 +35,10 @@ public class RobotP2P {
         }
     }
 
-    public void stop() {
+    public void stop() throws InterruptedException {
         grpcServer.shutdown();
         errorHandler.interrupt();
+        errorHandler.join();
     }
 
     public void presentToOthers() {

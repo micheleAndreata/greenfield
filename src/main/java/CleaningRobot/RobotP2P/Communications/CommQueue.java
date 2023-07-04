@@ -11,11 +11,9 @@ public class CommQueue {
     private final int[] openChannels;
     private final Set<RobotData> failedRobots;
 
-    private static CommQueue instance;
+    private static final CommQueue instance = new CommQueue();;
 
     public static CommQueue getInstance() {
-        if(instance==null)
-            instance = new CommQueue();
         return instance;
     }
 
@@ -55,11 +53,7 @@ public class CommQueue {
     public void waitForAllChannelsClosed() throws InterruptedException {
         synchronized (openChannels) {
             while (openChannels[0] != 0) {
-                try {
-                    openChannels.wait();
-                } catch (InterruptedException e) {
-                    throw new InterruptedException();
-                }
+                openChannels.wait();
             }
         }
     }

@@ -33,7 +33,6 @@ public class MqttSubscriber {
             @Override
             public void connectionLost(Throwable cause) {
                 logger.warning("Connection lost to " + brokerUrl);
-                mqttHandler.tryConnecting();
             }
 
             @Override
@@ -48,7 +47,7 @@ public class MqttSubscriber {
 
             }
         });
-        mqttHandler.tryConnecting();
+        mqttHandler.connect();
         mqttHandler.subscribe(topics);
     }
 

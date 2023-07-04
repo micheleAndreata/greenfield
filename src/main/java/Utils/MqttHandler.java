@@ -9,9 +9,6 @@ import static java.lang.Thread.sleep;
 public class MqttHandler {
 
     private static final Logger logger = Logger.getLogger(MqttHandler.class.getSimpleName());
-    private static final int MAX_CONN_RETRIES = 10;
-
-    final int[] connRetries = new int[1];
 
     MqttClient mqttClient;
     String brokerUrl;
@@ -29,44 +26,18 @@ public class MqttHandler {
         this.qos = qos;
     }
 
-    public void tryConnecting() {
-        int retries;
-        synchronized (connRetries) {
-            retries = connRetries[0];
-        }
-        if(retries < MAX_CONN_RETRIES) {
-            try {
-                if (!mqttClient.isConnected())
-                    connect();
-            }
-            catch (MqttException e) {
-                logger.info("failed to connect to mqtt broker, trying to reconnect...");
-                synchronized (connRetries) {
-                    connRetries[0]++;
-                }
-                try {
-                    sleep(1500);
-                } catch (InterruptedException ex) {
-                    logger.severe("interrupted while waiting for connection");
-                    return;
-                }
-                tryConnecting();
-            }
-        }
-        else {
-            logger.severe("No response from mqtt broker. Shutting down");
-            System.exit(0);
-        }
-    }
-
-    public void connect() throws MqttException {
+    public void connect() {
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setCleanSession(true);
-        mqttClient.connect(connOpts);
-        logger.info("Connected to broker " + brokerUrl);
-        synchronized (connRetries) {
-            connRetries[0] = 0;
+        connOpts.setAutomaticReconnect(true);
+        connOpts.setMaxReconnectDelay(3000);
+        try {
+            mqttClient.connect(connOpts);
+        } catch (MqttException e) {
+            logger.severe("An error occurred while connecting to broker " + brokerUrl);
+            e.printStackTrace();
         }
+        logger.info("Connected to broker " + brokerUrl);
     }
 
     public void subscribe(String[] topics) {
@@ -85,8 +56,19 @@ public class MqttHandler {
         try {
             if (mqttClient.isConnected())
                 mqttClient.disconnect();
+            mqttClient.close();
         }
         catch (MqttException me) {
+            logger.severe("Exception while disconnecting " + me.getMessage());
+            me.printStackTrace();
+        }
+    }
+
+    public void disconnectForcibly() {
+        try {
+            mqttClient.disconnectForcibly();
+            mqttClient.close(true);
+        } catch (MqttException me) {
             logger.severe("Exception while disconnecting " + me.getMessage());
             me.printStackTrace();
         }
@@ -96,12 +78,7 @@ public class MqttHandler {
         mqttClient.setCallback(mqttCallback);
     }
 
-    public void publish(String topic, MqttMessage message) {
-        try {
-            mqttClient.publish(topic, message);
-        } catch (MqttException e) {
-            logger.severe("Exception: " + e.getMessage());
-            e.printStackTrace();
-        }
+    public void publish(String topic, MqttMessage message) throws MqttException {
+        mqttClient.publish(topic, message);
     }
 }

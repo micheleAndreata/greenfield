@@ -25,6 +25,7 @@ public class BotNetServiceImpl extends BotNetServiceImplBase {
     @Override
     public void goodbye(RobotDataProto request, StreamObserver<Status> responseObserver) {
         RobotList.getInstance().removeRobot(request.getId());
+        logger.info("Robot " + request.getId() + " left");
         Status response = Status.newBuilder().setStatus(true).build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
@@ -35,14 +36,14 @@ public class BotNetServiceImpl extends BotNetServiceImplBase {
         MechanicState mechanicState = MechanicState.getInstance();
         if(mechanicState.isInMaintenance() ||
                 (mechanicState.isNeedingMaintenance() && mechanicState.getRequestTimestamp() < request.getTimestamp())) {
-            logger.info("request maintenance from " + request.getRobotID() + " not accepted");
+            logger.info("Request maintenance from " + request.getRobotID() + " not accepted");
             PendingRequests.getInstance().add(request);
             Status response = Status.newBuilder().setStatus(false).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
         else {
-            logger.info("request maintenance from " + request.getRobotID() + " accepted");
+            logger.info("Request maintenance from " + request.getRobotID() + " accepted");
             Status response = Status.newBuilder().setStatus(true).build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();

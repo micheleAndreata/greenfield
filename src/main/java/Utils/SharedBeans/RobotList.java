@@ -34,7 +34,12 @@ public class RobotList {
 
     public synchronized RobotData getRobot(String robotID) {
         RobotData robot = new RobotData(robotID, 0, "localhost", 0, new Position(0, 0));
-        return robots.get(robots.indexOf(robot));
+        try {
+            return robots.get(robots.indexOf(robot));
+        }
+        catch (IndexOutOfBoundsException e) {
+            return null;
+        }
     }
 
     public synchronized boolean contains(String robotID) {
@@ -42,7 +47,12 @@ public class RobotList {
     }
 
     public synchronized RobotData getRobot(RobotData robot) {
-        return robots.get(robots.indexOf(robot));
+        try {
+            return robots.get(robots.indexOf(robot));
+        }
+        catch (IndexOutOfBoundsException e) {
+            return null;
+        }
     }
 
     public synchronized void removeRobot(String robotID) {
