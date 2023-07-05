@@ -24,7 +24,7 @@ public class ErrorHandler extends Thread {
     public void run() {
         while(!stopCondition && !Thread.currentThread().isInterrupted()) {
             try {
-                CommQueue.getInstance().waitForAllChannelsClosed();
+                CommQueue.getInstance().waitForCommEvent();
             } catch (InterruptedException e) {
                 stopCondition = true;
                 Thread.currentThread().interrupt();

@@ -39,6 +39,8 @@ public class CommQueue {
     public void incrementOpenChannels() {
         synchronized (openChannels) {
             openChannels[0]++;
+            if (openChannels[0] == 1)
+                openChannels.notifyAll();
         }
     }
 
@@ -50,9 +52,22 @@ public class CommQueue {
         }
     }
 
+    public void waitForCommEvent() throws InterruptedException {
+        waitForCommEventStarted();
+        waitForAllChannelsClosed();
+    }
+
     public void waitForAllChannelsClosed() throws InterruptedException {
         synchronized (openChannels) {
             while (openChannels[0] != 0) {
+                openChannels.wait();
+            }
+        }
+    }
+
+    public void waitForCommEventStarted() throws InterruptedException {
+        synchronized (openChannels) {
+            while (openChannels[0] == 0) {
                 openChannels.wait();
             }
         }
