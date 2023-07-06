@@ -44,17 +44,10 @@ public class CleaningRobot {
                 "[%1$tF %1$tT] [%4$-7s] %3$s : %5$s %n");
     }
     public static void main(String[] args) throws IOException {
-
         String serverAddress = "http://localhost:1337";
-
         CleaningRobot cleaningRobot = new CleaningRobot(serverAddress);
 
-        cleaningRobot.startSensor();
-        cleaningRobot.startP2P();
-        cleaningRobot.presentToOthers();
-        cleaningRobot.startPublishingData();
-        cleaningRobot.startMechanicHandler();
-
+        cleaningRobot.start();
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("write exit to stop robot, fix to go to the mechanic");
         while(true) {
@@ -66,25 +59,11 @@ public class CleaningRobot {
                 break;
             }
         }
-        logger.info("Stopping robot");
-
-        logger.info("stopping sensor");
-        cleaningRobot.stopSensor();
-
-        logger.info("stopping MqttPublisher");
-        cleaningRobot.stopMqttPublisher();
-
-        logger.info("Stopping mechanic handler");
-        cleaningRobot.stopMalfunctionSimulator();
-        cleaningRobot.stopMechanicHandler();
-
-        logger.info("Leaving city");
-        cleaningRobot.leaveCity();
-
-        logger.info("Stopping robotP2P");
-        cleaningRobot.stopRobotP2P();
-
-        logger.info("Robot stopped");
+        try {
+            cleaningRobot.stop();
+        } catch (InterruptedException e) {
+            logger.severe(e.getMessage());
+        }
     }
 
     public CleaningRobot(String serverAddress) throws IOException {
@@ -92,8 +71,56 @@ public class CleaningRobot {
         this.restAPI = new RestAPI(serverAddress);
         this.sensor = new PM10Simulator(MBuffer.getInstance());
         this.sensorListener = new SensorListener();
+        promptDataAndRegister();
+    }
 
-        promptData();
+    public void start() {
+        sensor.start();
+        sensorListener.start();
+        logger.info("Sensor started");
+
+        robotP2P = new RobotP2P(robotData, serverAddress);
+        robotP2P.start();
+
+        robotP2P.presentToOthers();
+
+        mqttPublisher = new MqttPublisher(robotData.getDistrict(), robotData.getRobotID(), BROKER_ADDRESS, QOS);
+        mqttPublisher.start();
+        logger.info("Started publishing data to mqtt broker");
+
+        this.mechanicHandler = new MechanicHandler(robotData);
+        mechanicHandler.start();
+        malfunctionSimulator = new MalfunctionSimulator();
+        malfunctionSimulator.start();
+    }
+
+    public void stop() throws InterruptedException {
+        logger.info("Stopping robot");
+
+        logger.info("stopping sensor");
+        sensor.stopMeGently();
+        sensor.join();
+        sensorListener.interrupt();
+        sensorListener.join();
+
+        logger.info("stopping MqttPublisher");
+        mqttPublisher.stopMeGently();
+        mqttPublisher.join();
+
+        logger.info("Stopping mechanic handler");
+        malfunctionSimulator.interrupt();
+        malfunctionSimulator.join();
+        mechanicHandler.stopMeGently();
+        mechanicHandler.join();
+
+        logger.info("Leaving city");
+        robotP2P.notifyExit();
+        restAPI.removeRobot(robotData);
+
+        logger.info("Stopping robotP2P");
+        robotP2P.stop();
+
+        logger.info("Robot stopped");
     }
 
     private int register() {
@@ -116,89 +143,7 @@ public class CleaningRobot {
         return 0;
     }
 
-    public void leaveCity() {
-        robotP2P.notifyExit();
-        restAPI.removeRobot(robotData);
-    }
-
-    public void stopMechanicHandler() {
-        mechanicHandler.stopMeGently();
-        try {
-            mechanicHandler.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void stopMalfunctionSimulator() {
-        malfunctionSimulator.interrupt();
-        try {
-            malfunctionSimulator.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void stopRobotP2P() {
-        try {
-            robotP2P.stop();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void stopSensor() {
-        try {
-            sensor.stopMeGently();
-            sensor.join();
-
-            sensorListener.interrupt();
-            sensorListener.join();
-        }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void stopMqttPublisher() {
-        logger.info("Stopping mqtt publisher");
-        mqttPublisher.stopMeGently();
-        try {
-            mqttPublisher.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void startSensor() {
-        sensor.start();
-        sensorListener.start();
-        logger.info("Sensor started");
-    }
-
-    private void startPublishingData() {
-        mqttPublisher = new MqttPublisher(robotData.getDistrict(), robotData.getRobotID(), BROKER_ADDRESS, QOS);
-        mqttPublisher.start();
-        logger.info("Started publishing data to mqtt broker");
-    }
-
-    private void startP2P() {
-        robotP2P = new RobotP2P(robotData, serverAddress);
-        robotP2P.start();
-    }
-
-    private void startMechanicHandler() {
-        this.mechanicHandler = new MechanicHandler(robotData);
-        mechanicHandler.start();
-        malfunctionSimulator = new MalfunctionSimulator();
-        malfunctionSimulator.start();
-    }
-
-    private void presentToOthers() {
-        robotP2P.presentToOthers();
-    }
-
-    private void promptData() throws IOException {
+    private void promptDataAndRegister() throws IOException {
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.print("Insert robot ID: ");

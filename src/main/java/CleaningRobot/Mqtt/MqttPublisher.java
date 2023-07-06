@@ -29,16 +29,15 @@ public class MqttPublisher extends Thread{
     @Override
     public void run() {
         while (!stopCondition) {
-            // TODO: maybe another option to busy waiting?
             try {
-                sleep(15000); //use wait?
+                sleep(15000);
             } catch (InterruptedException e) {
                 stopCondition = true;
                 logger.info("disconnecting forcibly...");
                 mqttHandler.disconnectForcibly();
                 return;
             }
-            sendData(); // TODO: need to handle waiting for reconnection before sending data
+            sendData();
         }
         mqttHandler.disconnect();
     }
