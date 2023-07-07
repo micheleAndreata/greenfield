@@ -14,12 +14,13 @@ public class MalfunctionSimulator extends Thread {
     public void run() {
         while (!stopCondition) {
             try {
+                Thread.sleep(10000);
+
                 if (random.nextDouble() < 0.1 && !MechanicState.getInstance().isNeedingMaintenance()) {
                     logger.info("Malfunction! Needing maintenance");
                     MechanicState.getInstance().needMaintenance();
                     MechanicState.getInstance().waitForMaintenanceDisinterest();
                 }
-                Thread.sleep(10000);
             }
             catch (InterruptedException e) {
                 stopCondition = true;

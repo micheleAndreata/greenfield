@@ -51,11 +51,13 @@ public class RobotsService {
     @Path("remove/{robotID}")
     @DELETE
     public Response removeRobot(@PathParam("robotID") String robotID) {
-        int district = RobotList.getInstance().getRobot(robotID).getDistrict();
-        RobotList.getInstance().removeRobot(robotID);
-        Districts.getInstance().decrement(district);
-        logger.info("removed robot with ID " + robotID);
-        logger.info("Current districts distribution: " + Arrays.toString(Districts.getInstance().getDistricts()));
+        if (RobotList.getInstance().contains(robotID)) {
+            int district = RobotList.getInstance().getRobot(robotID).getDistrict();
+            RobotList.getInstance().removeRobot(robotID);
+            Districts.getInstance().decrement(district);
+            logger.info("removed robot with ID " + robotID);
+            logger.info("Current districts distribution: " + Arrays.toString(Districts.getInstance().getDistricts()));
+        }
         return Response.ok().build();
     }
 }

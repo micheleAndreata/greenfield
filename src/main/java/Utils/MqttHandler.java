@@ -4,7 +4,6 @@ import org.eclipse.paho.client.mqttv3.*;
 
 import java.util.logging.Logger;
 
-import static java.lang.Thread.sleep;
 
 public class MqttHandler {
 
@@ -16,12 +15,12 @@ public class MqttHandler {
 
     public MqttHandler(String brokerUrl, int qos) {
         try {
-            this.mqttClient = new MqttClient(brokerUrl, MqttClient.generateClientId());
+            this.mqttClient = new MqttClient(brokerUrl, MqttClient.generateClientId(), null);
         } catch (MqttException e) {
             logger.severe("An error occurred while initializing mqttSubscriber");
             throw new RuntimeException(e);
         }
-        ;
+
         this.brokerUrl = brokerUrl;
         this.qos = qos;
     }

@@ -44,10 +44,13 @@ public class CleaningRobot {
                 "[%1$tF %1$tT] [%4$-7s] %3$s : %5$s %n");
     }
     public static void main(String[] args) throws IOException {
+
         String serverAddress = "http://localhost:1337";
+
         CleaningRobot cleaningRobot = new CleaningRobot(serverAddress);
 
         cleaningRobot.start();
+
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("write exit to stop robot, fix to go to the mechanic");
         while(true) {
@@ -62,33 +65,29 @@ public class CleaningRobot {
         try {
             cleaningRobot.stop();
         } catch (InterruptedException e) {
-            logger.severe(e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public CleaningRobot(String serverAddress) throws IOException {
         this.serverAddress = serverAddress;
         this.restAPI = new RestAPI(serverAddress);
-        this.sensor = new PM10Simulator(MBuffer.getInstance());
-        this.sensorListener = new SensorListener();
         promptDataAndRegister();
     }
 
     public void start() {
+        sensor = new PM10Simulator(MBuffer.getInstance());
         sensor.start();
+        sensorListener = new SensorListener();
         sensorListener.start();
         logger.info("Sensor started");
-
         robotP2P = new RobotP2P(robotData, serverAddress);
         robotP2P.start();
-
         robotP2P.presentToOthers();
-
         mqttPublisher = new MqttPublisher(robotData.getDistrict(), robotData.getRobotID(), BROKER_ADDRESS, QOS);
         mqttPublisher.start();
         logger.info("Started publishing data to mqtt broker");
-
-        this.mechanicHandler = new MechanicHandler(robotData);
+        mechanicHandler = new MechanicHandler(robotData);
         mechanicHandler.start();
         malfunctionSimulator = new MalfunctionSimulator();
         malfunctionSimulator.start();
@@ -150,7 +149,7 @@ public class CleaningRobot {
         String robotID = inFromUser.readLine();
 
         int ownGrpcPort = 0;
-        boolean notANumber = false;
+        boolean notANumber;
         boolean notAvailable = false;
         System.out.print("Insert port for grpc: ");
         do {
