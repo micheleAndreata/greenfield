@@ -11,6 +11,7 @@ import Utils.SharedBeans.RobotList;
 import CleaningRobot.Sensor.SensorListener;
 import CleaningRobot.Sensor.MBuffer;
 import CleaningRobot.Sensor.Simulator.PM10Simulator;
+import com.google.gson.Gson;
 import com.sun.jersey.api.client.ClientResponse;
 
 import java.io.BufferedReader;
@@ -180,13 +181,22 @@ public class CleaningRobot {
         }
     }
 
-    public static boolean isTcpPortAvailable(int port) {
+    public boolean isTcpPortAvailable(int port) {
+        boolean localAvailable;
         try (ServerSocket serverSocket = new ServerSocket()) {
             serverSocket.setReuseAddress(false);
             serverSocket.bind(new InetSocketAddress(InetAddress.getByName("localhost"), port), 1);
-            return true;
+            localAvailable = true;
         } catch (Exception ex) {
-            return false;
+            localAvailable = false;
         }
+        boolean globalAvailable = false;
+
+        ClientResponse response = restAPI.isPortAvailable(port);
+        if (response != null && response.getStatus() == 200) {
+            globalAvailable = (new Gson()).fromJson(response.getEntity(String.class), Boolean.class);
+        }
+
+        return localAvailable && globalAvailable;
     }
 }

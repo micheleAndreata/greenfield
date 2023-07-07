@@ -29,6 +29,12 @@ public class RestAPI {
         return deleteRequest(client, requestUrl);
     }
 
+    public ClientResponse isPortAvailable(int port) {
+        String path = "/robots/is-port-available/";
+        String requestUrl = serverAddress + path + port;
+        return getRequest(client, requestUrl);
+    }
+
     public static ClientResponse postRequest(Client client, String url, String data) {
         WebResource webResource = client.resource(url);
         try {

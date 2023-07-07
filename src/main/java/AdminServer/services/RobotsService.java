@@ -60,4 +60,11 @@ public class RobotsService {
         }
         return Response.ok().build();
     }
+
+    @Path("is-port-available/{port}")
+    @GET
+    @Produces({"application/json", "application/xml"})
+    public Response isPortAvailable(@PathParam("port") int port) {
+        return Response.ok(RobotList.getInstance().isPortAvailable(port)).build();
+    }
 }

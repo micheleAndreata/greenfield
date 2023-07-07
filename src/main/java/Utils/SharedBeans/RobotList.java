@@ -75,4 +75,13 @@ public class RobotList {
     public synchronized void setRobots(ArrayList<RobotData> robots) {
         this.robots = robots;
     }
+
+    public synchronized boolean isPortAvailable(int port) {
+        for(RobotData robot : robots) {
+            if (robot.getGrpcPort() == port) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
