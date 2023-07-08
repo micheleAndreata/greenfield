@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AveragesBuffer {
-    ArrayList<Measurement> averages;
+    private final ArrayList<Measurement> averages;
 
-    public static AveragesBuffer instance = new AveragesBuffer();
+    public static final AveragesBuffer instance = new AveragesBuffer();
     public static AveragesBuffer getInstance() {
         return instance;
     }

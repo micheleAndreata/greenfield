@@ -63,6 +63,7 @@ public class CleaningRobot {
                 break;
             }
         }
+
         try {
             cleaningRobot.stop();
         } catch (InterruptedException e) {

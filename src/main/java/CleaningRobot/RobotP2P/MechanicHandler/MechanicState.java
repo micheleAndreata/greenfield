@@ -1,10 +1,8 @@
 package CleaningRobot.RobotP2P.MechanicHandler;
 
-import java.util.logging.Logger;
 
 public class MechanicState {
 
-    private static final Logger logger = Logger.getLogger(MechanicState.class.getSimpleName());
     private volatile boolean inMaintenance = false;
     private final Object lockInMaintenance = new Object();
     private volatile boolean needingMaintenance = false;
@@ -56,18 +54,6 @@ public class MechanicState {
         synchronized (lockNeedMaintenance) {
             while (needingMaintenance) {
                 lockNeedMaintenance.wait();
-            }
-        }
-    }
-
-    public void waitForMechanicExit() {
-        synchronized (lockInMaintenance) {
-            while (inMaintenance) {
-                try {
-                    lockInMaintenance.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace(); //TODO: handle interrupt
-                }
             }
         }
     }

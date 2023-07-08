@@ -45,7 +45,7 @@ public class MqttHandler {
                 mqttClient.subscribe(topic, qos);
             } catch (MqttException e) {
                 logger.severe("An error occurred while subscribing to topic " + topic);
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
             logger.info("Subscribed to topic " + topic);
         }

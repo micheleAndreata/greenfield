@@ -1,6 +1,5 @@
 package AdminClient;
 
-import CleaningRobot.CleaningRobot;
 import Utils.SharedBeans.RobotData;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
@@ -8,25 +7,14 @@ import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.logging.Logger;
 
 public class AdminClient {
     private final String serverAddress;
     private final Client client;
     private final BufferedReader inFromUser;
-
-    private static final Logger logger = Logger.getLogger(AdminClient.class.getSimpleName());
-    static {
-        Locale.setDefault(new Locale("en", "EN"));
-        System.setProperty("java.util.logging.SimpleFormatter.format",
-                "[%1$tF %1$tT] [%4$-7s] %3$s : %5$s %n");
-    }
 
     public static void main(String[] args) throws IOException {
         AdminClient adminClient = new AdminClient("http://localhost:1337");
@@ -74,7 +62,7 @@ public class AdminClient {
 
         do {
             invalidInput = false;
-            System.out.print("enter first timestamp: ");
+            System.out.print("--- enter first timestamp: ");
             try {
                 t1 = Long.parseLong(inFromUser.readLine());
             } catch (NumberFormatException e) {
@@ -85,71 +73,68 @@ public class AdminClient {
 
         do {
             invalidInput = false;
-            System.out.print("enter second timestamp: ");
+            System.out.print("--- enter second timestamp: ");
             try {
                 t2 = Long.parseLong(inFromUser.readLine());
             } catch (NumberFormatException e) {
-                System.out.println("invalid input");
+                System.out.println("--- * Invalid input *");
                 invalidInput = true;
             }
         } while (invalidInput);
 
         ClientResponse response = getRobotsAverage(t1, t2);
         if (response == null) {
-            logger.severe("Server unavailable");
+            System.out.println("--- * Server unavailable *");
             return;
         }
         if (response.getStatus() != 200) {
-            logger.severe("Server responded with: " + response.getStatus() + " " + response.getEntity(String.class));
+            System.out.println("--- Error: " + response.getStatus() + " " + response.getEntity(String.class));
+            return;
         }
-        System.out.println("Response: " + response.getEntity(String.class));
+        System.out.println("--- Response: " + response.getEntity(String.class));
     }
 
     private void handleGetRobotAverage() throws IOException {
         System.out.println("*** Get Robot Average Service ***");
         boolean invalidInput;
-        String robotID = "";
+        String robotID;
         int n = 0;
 
-        System.out.print("enter robot id: ");
+        System.out.print("--- enter robot id: ");
         robotID = inFromUser.readLine();
 
         do {
             invalidInput = false;
-            System.out.print("enter how many measurements: ");
+            System.out.print("--- enter how many measurements: ");
             try {
                 n = Integer.parseInt(inFromUser.readLine());
             } catch (NumberFormatException e) {
-                System.out.println("invalid input");
+                System.out.println("--- * invalid input *");
                 invalidInput = true;
             }
         } while (invalidInput);
 
         ClientResponse response = getRobotAverage(robotID, n);
         if (response == null) {
-            logger.severe("Server unavailable");
-            return;
-        }
-        if (response.getStatus() == 404) {
-            logger.severe("Robot not found");
+            System.out.println("--- * Server unavailable *");
             return;
         }
         if (response.getStatus() != 200) {
-            logger.severe("Server responded with: " + response.getStatus() + " " + response.getEntity(String.class));
+            System.out.println("--- Error: " + response.getStatus() + " " + response.getEntity(String.class));
             return;
         }
-        System.out.println("Response: " + response.getEntity(String.class));
+        System.out.println("--- Response: " + response.getEntity(String.class));
     }
 
     public void handleGetRobots() {
         System.out.println("*** Get robots Service ***");
         ClientResponse response = getRobots();
         if (response == null) {
-            System.out.println("Server unavailable");
+            System.out.println("--- * Server unavailable *");
             return;
         }
         if (response.getStatus() != 200) {
-            logger.severe("Server responded with: " + response.getStatus() + " " + response.getEntity(String.class));
+            System.out.println("--- Error: " + response.getStatus() + " " + response.getEntity(String.class));
             return;
         }
         RobotData[] robotList = (new Gson()).fromJson(response.getEntity(String.class), RobotData[].class);

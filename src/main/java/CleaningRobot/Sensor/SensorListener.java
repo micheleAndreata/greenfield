@@ -4,7 +4,6 @@ import CleaningRobot.Mqtt.AveragesBuffer;
 import CleaningRobot.Sensor.Simulator.Measurement;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import static Utils.Config.WINDOW_SIZE;
 
@@ -13,8 +12,6 @@ public class SensorListener extends Thread {
     private final MBuffer mBuffer;
     private final AveragesBuffer avgsBuffer;
     private volatile boolean stopCondition = false;
-
-    private static final Logger logger = Logger.getLogger(SensorListener.class.getSimpleName());
 
     public SensorListener() {
         this.mBuffer = MBuffer.getInstance();
@@ -28,7 +25,7 @@ public class SensorListener extends Thread {
         while(!stopCondition) {
             List<Measurement> measurements = mBuffer.readAllAndClean();
 
-            if (measurements == null)
+            if (measurements == null) // if got interrupt the readAllAndClean returns null
                 break;
 
             String id = measurements.get(0).getId();

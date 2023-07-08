@@ -18,7 +18,9 @@ public class StatsService {
         if (average != null) {
             return Response.ok(average).build();
         } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("No measurements found for the given inputs")
+                    .build();
         }
     }
 
@@ -30,7 +32,9 @@ public class StatsService {
         if (average != null) {
             return Response.ok(average).build();
         } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("No measurement found in time range " + t1 + " to " + t2)
+                    .build();
         }
     }
 
