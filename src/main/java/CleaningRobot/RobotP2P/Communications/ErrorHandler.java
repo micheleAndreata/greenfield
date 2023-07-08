@@ -1,7 +1,6 @@
 package CleaningRobot.RobotP2P.Communications;
 
 import CleaningRobot.RestAPI.RestAPI;
-import CleaningRobot.RobotP2P.MechanicHandler.RobotsAnswers;
 import Utils.SharedBeans.RobotData;
 import Utils.SharedBeans.RobotList;
 import com.sun.jersey.api.client.ClientResponse;
@@ -39,11 +38,10 @@ public class ErrorHandler extends Thread {
         if (failedRobots.isEmpty()) {
             return;
         }
-        RobotList.getInstance().removeRobots(failedRobots);
-        RobotsAnswers.getInstance().notifyChange();
-        logger.info("Change in RobotList size: " + RobotList.getInstance().size());
+        List<RobotData> remainingRobots = RobotList.getInstance().getList();
+        remainingRobots.removeAll(failedRobots);
         for(RobotData failedRobot : failedRobots) {
-            Communications.broadcastGoodbye(failedRobot);
+            Communications.broadcastGoodbye(failedRobot, remainingRobots);
 
             ClientResponse response = restAPI.removeRobot(failedRobot);
             if (response == null) {
@@ -54,9 +52,5 @@ public class ErrorHandler extends Thread {
                 logger.severe("Server responded with: " + response.getStatus() + " " + response.getEntity(String.class));
             }
         }
-    }
-
-    public void stopMeGently() {
-        stopCondition = true;
     }
 }

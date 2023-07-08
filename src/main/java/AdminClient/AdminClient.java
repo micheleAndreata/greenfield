@@ -36,6 +36,10 @@ public class AdminClient {
             System.out.print("Select service: ");
             service = inFromUser.readLine();
 
+            if (service.equals("exit")) {
+                break;
+            }
+
             switch (service) {
                 case "1":
                     handleGetRobots();
@@ -45,8 +49,6 @@ public class AdminClient {
                     break;
                 case "3":
                     handleGetRobotsAverage();
-                    break;
-                case "exit":
                     break;
                 default:
                     System.out.println("invalid input.");

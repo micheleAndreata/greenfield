@@ -16,7 +16,13 @@ public class BotNetServiceImpl extends BotNetServiceImplBase {
     private static final Logger logger = Logger.getLogger(BotNetServiceImpl.class.getSimpleName());
     @Override
     public void hello(RobotDataProto request, StreamObserver<Status> responseObserver) {
+        logger.info("Robot " + request.getId() + " entered");
         RobotList.getInstance().addRobot(new RobotData(request));
+
+        if (MechanicState.getInstance().isWaitingForMaintenance()) {
+            RobotsAnswers.getInstance().addPositive(request.getId());
+        }
+
         Status response = Status.newBuilder().setStatus(true).build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
@@ -24,8 +30,16 @@ public class BotNetServiceImpl extends BotNetServiceImplBase {
 
     @Override
     public void goodbye(RobotDataProto request, StreamObserver<Status> responseObserver) {
-        RobotList.getInstance().removeRobot(request.getId());
+
+        if (MechanicState.getInstance().isWaitingForMaintenance()) {
+            RobotsAnswers.getInstance().removeRobotFromEverywhere(request.getId());
+        }
+        else {
+            RobotList.getInstance().removeRobot(request.getId());
+        }
+
         logger.info("Robot " + request.getId() + " left");
+        logger.info("Change in RobotList size: " + RobotList.getInstance().size());
         Status response = Status.newBuilder().setStatus(true).build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();

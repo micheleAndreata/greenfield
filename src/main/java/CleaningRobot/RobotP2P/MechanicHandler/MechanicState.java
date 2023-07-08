@@ -58,6 +58,14 @@ public class MechanicState {
         }
     }
 
+    public boolean isWaitingForMaintenance() {
+        synchronized (lockNeedMaintenance) {
+            synchronized (lockInMaintenance) {
+                return !inMaintenance && needingMaintenance;
+            }
+        }
+    }
+
     public void enterMechanic() {
         synchronized (lockInMaintenance) {
             inMaintenance = true;

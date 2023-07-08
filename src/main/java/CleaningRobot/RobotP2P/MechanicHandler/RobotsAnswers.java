@@ -35,13 +35,6 @@ public class RobotsAnswers {
         }
     }
 
-    public void notifyChange() {
-        synchronized (positiveAnswers) {
-            positiveAnswers.notifyAll();
-        }
-
-    }
-
     public void waitForAllAnswers() throws InterruptedException {
         synchronized (positiveAnswers) {
             while(positiveAnswers.size() != RobotList.getInstance().size()) {
@@ -62,6 +55,17 @@ public class RobotsAnswers {
                 RobotData robot = RobotList.getInstance().getRobot(robotID);
                 if (robot != null)
                     Communications.areYouOK(robot);
+            }
+        }
+    }
+
+    public void removeRobotFromEverywhere(String robotID) {
+        synchronized (positiveAnswers) {
+            synchronized (negativeAnswers) {
+                RobotList.getInstance().removeRobot(robotID);
+                if (positiveAnswers.remove(robotID))
+                    positiveAnswers.notifyAll();
+                negativeAnswers.remove(robotID);
             }
         }
     }

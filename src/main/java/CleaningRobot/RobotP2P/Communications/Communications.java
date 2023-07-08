@@ -8,6 +8,7 @@ import Utils.SharedBeans.RobotList;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 
 import CleaningRobot.RobotP2P.BotNetServiceGrpc.*;
@@ -21,6 +22,14 @@ public class Communications {
 
     public static void broadcastGoodbye(RobotData callingRobot) {
         broadcastMessage(callingRobot, Communications::goodbye);
+    }
+
+    public static void broadcastGoodbye(RobotData callingRobot, List<RobotData> broadcastList) {
+        for (RobotData targetRobot : broadcastList) {
+            if (targetRobot.equals(callingRobot))
+                continue;
+            goodbye(callingRobot, targetRobot);
+        }
     }
 
     public static void broadcastRequestMaintenance(RobotData callingRobot) {

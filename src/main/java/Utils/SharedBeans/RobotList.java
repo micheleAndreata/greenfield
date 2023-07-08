@@ -5,7 +5,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
-import java.util.List;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -58,10 +57,6 @@ public class RobotList {
     public synchronized void removeRobot(String robotID) {
         RobotData robot = new RobotData(robotID, 0, "localhost", 0, new Position(0, 0));
         robots.remove(robot);
-    }
-
-    public synchronized void removeRobots(List<RobotData> robotsToRemove) {
-        robots.removeAll(robotsToRemove);
     }
 
     public synchronized int size() {
